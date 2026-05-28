@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Evante · Aprendizado com R</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary:        #1e90ff;   /* azul Evante */
+    --primary-dark:   #1565c0;
+    --primary-light:  #42a5f5;
+    --primary-soft:   #e3f2fd;
+    --error:          #d32f2f;
+    --warning:        #ed6c02;
+    --success:        #2e7d32;
+    --info:           #0288d1;
+    --bg:             #f5f5f5;
+    --paper:          #ffffff;
+    --surface-2:      #fafafa;
+    --divider:        rgba(0,0,0,0.12);
+    --text-primary:   rgba(0,0,0,0.87);
+    --text-secondary: rgba(0,0,0,0.6);
+    --on-primary:     #ffffff;
+    --e1: 0 2px 1px -1px rgba(0,0,0,0.2), 0 1px 1px 0 rgba(0,0,0,0.14), 0 1px 3px 0 rgba(0,0,0,0.12);
+    --e2: 0 3px 1px -2px rgba(0,0,0,0.2), 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12);
+    --e4: 0 2px 4px -1px rgba(0,0,0,0.2), 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12);
+    --e8: 0 5px 5px -3px rgba(0,0,0,0.2), 0 8px 10px 1px rgba(0,0,0,0.14), 0 3px 14px 2px rgba(0,0,0,0.12);
+  }
+
+  body {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg); color: var(--text-primary);
+    min-height: 100vh; -webkit-font-smoothing: antialiased; line-height: 1.5;
+  }
+
+  /* =================== AppBar =================== */
+  .appbar {
+    background: var(--paper); color: var(--text-primary);
+    box-shadow: var(--e2); position: sticky; top: 0; z-index: 100;
+    padding: 0 32px; display: flex; align-items: center; justify-content: space-between;
+    min-height: 64px;
+    border-bottom: 1px solid var(--divider);
+  }
+  .appbar-logo { display: flex; align-items: center; gap: 12px; }
+  .appbar-logo img { height: 36px; display: block; border-radius: 8px; }
+  .appbar-actions { display: flex; gap: 10px; align-items: center; }
+
+  .user-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--primary-soft); color: var(--primary-dark);
+    padding: 6px 14px 6px 6px; border-radius: 16px;
+    font-size: 14px; font-weight: 500;
+  }
+  .avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--primary); color: white;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 500; font-size: 13px;
+  }
+
+  /* =================== Buttons =================== */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px; border: none; cursor: pointer; font-family: inherit;
+    font-weight: 500; font-size: 14px; letter-spacing: 0.02857em;
+    text-transform: uppercase; padding: 8px 22px; min-height: 36px;
+    border-radius: 4px; transition: all 0.2s;
+    position: relative; overflow: hidden; user-select: none;
+  }
+  .btn .material-icons { font-size: 18px; }
+  .btn-contained { background: var(--primary); color: var(--on-primary); box-shadow: var(--e2); }
+  .btn-contained:hover { background: var(--primary-dark); box-shadow: var(--e4); }
+  .btn-outlined { background: transparent; color: var(--primary); border: 1px solid rgba(30,144,255,0.5); }
+  .btn-outlined:hover { background: rgba(30,144,255,0.08); border-color: var(--primary); }
+  .btn-text { background: transparent; color: var(--primary); padding: 6px 16px; }
+  .btn-text:hover { background: rgba(30,144,255,0.08); }
+  .btn-danger { background: var(--error); color: white; box-shadow: var(--e2); }
+  .btn-danger:hover { background: #b71c1c; box-shadow: var(--e4); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+  .btn-fab { padding: 14px 40px; font-size: 15px; min-height: 48px; border-radius: 8px; }
+  .btn::after {
+    content: ''; position: absolute; top: 50%; left: 50%;
+    width: 0; height: 0; border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease;
+    pointer-events: none;
+  }
+  .btn-outlined::after, .btn-text::after { background: rgba(30,144,255,0.2); }
+  .btn:active::after { width: 220%; height: 220%; transition: 0s; }
+
+  /* =================== Inputs Material =================== */
+  .form-field {
+    display: flex; flex-direction: column; gap: 4px;
+    margin-bottom: 18px;
+  }
+  .form-field label {
+    font-size: 12px; font-weight: 500;
+    color: var(--text-secondary); letter-spacing: 0.05em;
+  }
+  .form-field input, .form-field select {
+    padding: 12px 14px;
+    border: 1px solid rgba(0,0,0,0.23);
+    border-radius: 4px;
+    font-size: 15px;
+    font-family: inherit;
+    background: white;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    color: var(--text-primary);
+  }
+  .form-field input:focus, .form-field select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 1px var(--primary);
+  }
+  .form-field .hint {
+    font-size: 11px; color: var(--text-secondary); margin-top: 2px;
+  }
+
+  /* =================== HERO (não logado) =================== */
+  #screen-hero { display: none; padding: 48px 24px; min-height: 90vh; align-items: center; justify-content: center; }
+  #screen-hero.active { display: flex; }
+  .hero-wrap { max-width: 1100px; width: 100%; display: grid; grid-template-columns: 1.05fr 1fr; gap: 64px; align-items: center; }
+  .hero-left { text-align: left; }
+  .hero-logo {
+    max-width: 380px; width: 100%; height: auto;
+    display: block; margin-bottom: 32px;
+    border-radius: 16px;
+    box-shadow: var(--e1);
+  }
+  .hero-title {
+    font-size: 44px; font-weight: 300; color: var(--text-primary);
+    letter-spacing: -0.5px; line-height: 1.15; margin-bottom: 16px;
+  }
+  .hero-title .accent { color: var(--primary); font-weight: 500; }
+  .hero-sub {
+    font-size: 16px; color: var(--text-secondary); line-height: 1.6;
+    margin-bottom: 20px;
+  }
+  .hero-feats { display: flex; gap: 16px; flex-wrap: wrap; }
+  .hero-feat {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--text-secondary);
+  }
+  .hero-feat .material-icons { font-size: 18px; color: var(--primary); }
+
+  /* Login card */
+  .login-card {
+    background: var(--paper);
+    border-radius: 8px;
+    box-shadow: var(--e4);
+    padding: 32px;
+  }
+  .login-card h2 {
+    font-size: 22px; font-weight: 500; color: var(--text-primary);
+    margin-bottom: 6px;
+  }
+  .login-card .sub {
+    font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;
+  }
+  .login-card .btn { width: 100%; }
+
+  /* =================== HUB (logado) =================== */
+  #screen-hub { display: none; padding: 32px 24px 64px; max-width: 1240px; margin: 0 auto; }
+  #screen-hub.active { display: block; }
+  .hub-welcome { margin-bottom: 24px; }
+  .hub-welcome h1 { font-size: 32px; font-weight: 300; color: var(--text-primary); letter-spacing: -0.5px; }
+  .hub-welcome h1 .accent { color: var(--primary); font-weight: 500; }
+  .hub-welcome .sub { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
+
+  /* Tabs */
+  .tabs {
+    display: flex; gap: 4px; border-bottom: 1px solid var(--divider);
+    margin-bottom: 24px; overflow-x: auto;
+  }
+  .tab {
+    padding: 12px 22px; cursor: pointer;
+    font-size: 14px; font-weight: 500; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.02857em;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  }
+  .tab .material-icons { font-size: 18px; }
+  .tab:hover { color: var(--text-primary); background: rgba(0,0,0,0.04); }
+  .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; animation: fadeIn 0.3s ease; }
+
+  /* Game cards */
+  .games-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+  }
+  .game-card {
+    background: var(--paper);
+    border-radius: 12px;
+    box-shadow: var(--e1);
+    overflow: hidden;
+    transition: box-shadow 0.2s, transform 0.2s;
+    display: flex; flex-direction: column;
+  }
+  .game-card:hover { box-shadow: var(--e4); transform: translateY(-2px); }
+  .game-card-head {
+    padding: 24px; color: white;
+    position: relative;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  }
+  .game-card-head.purple  { background: linear-gradient(135deg, #7b1fa2, #4a148c); }
+  .game-card-head.green   { background: linear-gradient(135deg, #2e7d32, #1b5e20); }
+  .game-card-head.orange  { background: linear-gradient(135deg, #ed6c02, #c66200); }
+  .game-card-head.red     { background: linear-gradient(135deg, #d32f2f, #b71c1c); }
+  .game-card-head .material-icons {
+    font-size: 36px; margin-bottom: 12px; opacity: 0.9;
+  }
+  .game-card-head h3 {
+    font-size: 20px; font-weight: 500; margin-bottom: 4px;
+  }
+  .game-card-head .level {
+    font-size: 12px; opacity: 0.85; text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .game-card-body {
+    padding: 18px 24px 24px;
+    flex: 1;
+    display: flex; flex-direction: column;
+  }
+  .game-card-body p { font-size: 14px; color: var(--text-secondary); line-height: 1.55; margin-bottom: 16px; flex: 1; }
+  .game-card-foot {
+    display: flex; gap: 8px; align-items: center; justify-content: space-between;
+  }
+  .game-best {
+    font-size: 12px; color: var(--text-secondary);
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .game-best .material-icons { font-size: 16px; color: var(--warning); }
+
+  /* Ranking */
+  .ranking-controls {
+    display: flex; gap: 12px; align-items: center; margin-bottom: 16px; flex-wrap: wrap;
+  }
+  table.data {
+    width: 100%; border-collapse: collapse;
+    background: var(--paper); border-radius: 8px; overflow: hidden;
+    box-shadow: var(--e1); font-size: 14px;
+  }
+  table.data th {
+    background: var(--surface-2);
+    text-align: left; padding: 14px 16px;
+    font-size: 12px; font-weight: 500; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    border-bottom: 1px solid var(--divider);
+  }
+  table.data td {
+    padding: 14px 16px; border-bottom: 1px solid var(--divider);
+    color: var(--text-primary);
+  }
+  table.data tbody tr:hover { background: rgba(30,144,255,0.04); }
+  table.data tbody tr:last-child td { border-bottom: none; }
+  table.data td.num { font-variant-numeric: tabular-nums; }
+  table.data td.rank {
+    font-weight: 700; font-size: 16px; color: var(--text-secondary);
+    width: 60px;
+  }
+  table.data tr.top-1 td.rank { color: #ffb300; }
+  table.data tr.top-2 td.rank { color: #9e9e9e; }
+  table.data tr.top-3 td.rank { color: #cd7f32; }
+  .game-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 12px;
+    font-size: 11px; font-weight: 600;
+    background: var(--primary-soft); color: var(--primary-dark);
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .game-badge.purple { background: #f3e5f5; color: #7b1fa2; }
+  .game-badge.green  { background: #e8f5e9; color: #2e7d32; }
+  .game-badge.orange { background: #fff3e0; color: #ed6c02; }
+  .game-badge.red    { background: #ffebee; color: #d32f2f; }
+
+  /* Form de registro de score */
+  .submit-card {
+    background: var(--paper); border-radius: 8px; box-shadow: var(--e1);
+    padding: 24px; margin-top: 24px;
+  }
+  .submit-card h3 {
+    font-size: 16px; font-weight: 500; color: var(--text-primary); margin-bottom: 4px;
+  }
+  .submit-card .sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 18px; }
+  .submit-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr auto; gap: 12px; align-items: end; }
+
+  /* Admin */
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .stat-card { background: var(--paper); border-radius: 8px; box-shadow: var(--e1); padding: 20px; }
+  .stat-card .v { font-size: 32px; font-weight: 500; color: var(--primary); line-height: 1; }
+  .stat-card .l { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 6px; }
+  .admin-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: #323232; color: white;
+    padding: 14px 22px; border-radius: 4px;
+    font-size: 14px; box-shadow: var(--e8);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 200;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast .material-icons { font-size: 20px; }
+  .toast.success { background: var(--success); }
+  .toast.error   { background: var(--error); }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Status do banco */
+  .db-status {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; color: var(--text-secondary);
+    padding: 4px 8px; border-radius: 12px; background: var(--surface-2);
+  }
+  .db-status .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+  .db-status.error .dot { background: var(--error); }
+
+  @media (max-width: 900px) {
+    .hero-wrap { grid-template-columns: 1fr; gap: 32px; }
+    .hero-left { text-align: center; }
+    .hero-logo { margin: 0 auto 24px; }
+    .submit-row { grid-template-columns: 1fr 1fr; }
+    .games-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ APP BAR ============ -->
+<header class="appbar">
+  <div class="appbar-logo">
+    <img src="Evante-01.jpg" alt="Evante" />
+  </div>
+  <div class="appbar-actions">
+    <span class="db-status" id="db-status"><span class="dot"></span><span id="db-status-text">SQLite local</span></span>
+    <div id="user-info" style="display:none;">
+      <div class="user-chip">
+        <span class="avatar" id="user-avatar">?</span>
+        <span id="user-name">—</span>
+      </div>
+    </div>
+    <button class="btn btn-text" id="btn-logout" style="display:none;" onclick="logout()">
+      <span class="material-icons">logout</span>Sair
+    </button>
+  </div>
+</header>
+
+<!-- ============ HERO (não logado) ============ -->
+<section id="screen-hero" class="active">
+  <div class="hero-wrap">
+    <div class="hero-left">
+      <img src="Evante-01.jpg" alt="Evante" class="hero-logo" />
+      <h1 class="hero-title">Aprendizado de <span class="accent">R</span><br/>com a Evante</h1>
+      <p class="hero-sub">
+        Plataforma de games educacionais para a disciplina de R: gramática do ggplot2,
+        transformação com dplyr, importação de dados e modelos de regressão.
+      </p>
+      <div class="hero-feats">
+        <span class="hero-feat"><span class="material-icons">videogame_asset</span>4 games · 80 fases</span>
+        <span class="hero-feat"><span class="material-icons">storage</span>Ranking persistido (SQLite)</span>
+        <span class="hero-feat"><span class="material-icons">offline_bolt</span>Funciona offline</span>
+      </div>
+    </div>
+
+    <div class="login-card">
+      <h2>Identifique-se</h2>
+      <p class="sub">Seus resultados serão salvos localmente para aparecer no ranking.</p>
+
+      <div class="form-field">
+        <label for="login-nome">Nome completo</label>
+        <input id="login-nome" type="text" placeholder="ex.: Maria Silva" autocomplete="name" />
+      </div>
+      <div class="form-field">
+        <label for="login-email">Email (opcional)</label>
+        <input id="login-email" type="email" placeholder="ex.: maria@ufal.br" autocomplete="email" />
+      </div>
+      <div class="form-field">
+        <label for="login-data">Data de nascimento</label>
+        <input id="login-data" type="date" />
+        <span class="hint">Usada apenas para o cadastro — não aparece no ranking.</span>
+      </div>
+
+      <button class="btn btn-contained" onclick="cadastrar()">
+        <span class="material-icons">login</span>Entrar
+      </button>
+
+      <p style="text-align:center;margin-top:14px;font-size:13px;color:var(--text-secondary);">
+        Já se cadastrou antes?
+        <a href="#" onclick="event.preventDefault(); mostrarRetomar();" style="color:var(--primary);text-decoration:none;font-weight:500;">
+          Retomar cadastro
+        </a>
+      </p>
+
+      <div id="retomar-box" style="display:none;margin-top:16px;padding:16px;background:var(--surface-2);border-radius:6px;">
+        <div class="form-field" style="margin-bottom:8px;">
+          <label>Selecione seu nome</label>
+          <select id="retomar-select"></select>
+        </div>
+        <button class="btn btn-outlined" style="width:100%;" onclick="retomar()">
+          <span class="material-icons">person</span>Entrar com este perfil
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HUB (logado) ============ -->
+<section id="screen-hub">
+  <div class="hub-welcome">
+    <h1>Olá, <span class="accent" id="hub-nome">aluno</span></h1>
+    <p class="sub" id="hub-sub">Escolha um game para começar.</p>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="games"><span class="material-icons">videogame_asset</span>Games</div>
+    <div class="tab" data-tab="ranking"><span class="material-icons">leaderboard</span>Ranking</div>
+    <div class="tab" data-tab="historico"><span class="material-icons">history</span>Meu histórico</div>
+    <div class="tab" data-tab="admin"><span class="material-icons">settings</span>Admin</div>
+  </div>
+
+  <!-- TAB: GAMES -->
+  <div class="tab-panel active" id="tab-games">
+    <div class="games-grid" id="games-grid"></div>
+  </div>
+
+  <!-- TAB: RANKING -->
+  <div class="tab-panel" id="tab-ranking">
+    <div class="ranking-controls">
+      <div class="form-field" style="margin-bottom:0;min-width:220px;">
+        <label>Filtrar por game</label>
+        <select id="ranking-filter" onchange="renderRanking()">
+          <option value="">Todos os games (pontuação total)</option>
+          <option value="ggplot">ggplot2 Quest</option>
+          <option value="dplyr">dplyr Quest</option>
+          <option value="import">import Quest</option>
+          <option value="regression">regression Quest</option>
+        </select>
+      </div>
+      <button class="btn btn-text" onclick="renderRanking()"><span class="material-icons">refresh</span>Atualizar</button>
+    </div>
+    <table class="data">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Jogador</th>
+          <th id="th-game" style="display:none;">Game</th>
+          <th>Pontos</th>
+          <th>Dicas</th>
+          <th>Erros</th>
+          <th>Última partida</th>
+        </tr>
+      </thead>
+      <tbody id="ranking-body"></tbody>
+    </table>
+  </div>
+
+  <!-- TAB: HISTORICO -->
+  <div class="tab-panel" id="tab-historico">
+    <div class="submit-card">
+      <h3>Registrar pontuação de um game</h3>
+      <p class="sub">Ao terminar um game, anote sua pontuação aqui para entrar no ranking.</p>
+      <div class="submit-row">
+        <div class="form-field" style="margin-bottom:0;">
+          <label>Game</label>
+          <select id="sub-game">
+            <option value="ggplot">ggplot2 Quest</option>
+            <option value="dplyr">dplyr Quest</option>
+            <option value="import">import Quest</option>
+            <option value="regression">regression Quest</option>
+          </select>
+        </div>
+        <div class="form-field" style="margin-bottom:0;">
+          <label>Pontos</label>
+          <input id="sub-pontos" type="number" min="0" max="2000" placeholder="0" />
+        </div>
+        <div class="form-field" style="margin-bottom:0;">
+          <label>Dicas usadas</label>
+          <input id="sub-dicas" type="number" min="0" value="0" />
+        </div>
+        <div class="form-field" style="margin-bottom:0;">
+          <label>Erros</label>
+          <input id="sub-erros" type="number" min="0" value="0" />
+        </div>
+        <button class="btn btn-contained" onclick="salvarScore()">
+          <span class="material-icons">add</span>Salvar
+        </button>
+      </div>
+    </div>
+
+    <h3 style="margin:32px 0 16px;font-size:18px;font-weight:500;">Minhas partidas</h3>
+    <table class="data">
+      <thead>
+        <tr>
+          <th>Game</th>
+          <th>Pontos</th>
+          <th>Dicas</th>
+          <th>Erros</th>
+          <th>Quando</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="historico-body"></tbody>
+    </table>
+  </div>
+
+  <!-- TAB: ADMIN -->
+  <div class="tab-panel" id="tab-admin">
+    <div class="stat-grid">
+      <div class="stat-card"><div class="v" id="stat-users">0</div><div class="l">Usuários cadastrados</div></div>
+      <div class="stat-card"><div class="v" id="stat-scores">0</div><div class="l">Partidas registradas</div></div>
+      <div class="stat-card"><div class="v" id="stat-pts">0</div><div class="l">Pontos totais</div></div>
+      <div class="stat-card"><div class="v" id="stat-db-size">0</div><div class="l">Banco (KB)</div></div>
+    </div>
+    <div class="admin-actions">
+      <button class="btn btn-outlined" onclick="exportarBanco()"><span class="material-icons">file_download</span>Exportar .sqlite</button>
+      <button class="btn btn-outlined" onclick="document.getElementById('importar-file').click()"><span class="material-icons">file_upload</span>Importar .sqlite</button>
+      <input type="file" id="importar-file" accept=".sqlite,.db" style="display:none;" onchange="importarBanco(this.files[0])" />
+      <button class="btn btn-danger" onclick="resetarBanco()"><span class="material-icons">delete_forever</span>Limpar tudo</button>
+    </div>
+    <div style="margin-top:24px;padding:16px;background:#fff3e0;border-left:4px solid var(--warning);border-radius:4px;font-size:13px;color:#663c00;">
+      <strong>Sobre a persistência:</strong> O banco SQLite roda inteiramente no seu navegador (via WebAssembly) e fica salvo no <code>localStorage</code>. Limpar o cache do navegador apaga tudo — use "Exportar" antes para fazer backup.
+    </div>
+  </div>
+</section>
+
+<div class="toast" id="toast"><span class="material-icons" id="toast-icon">check_circle</span><span id="toast-msg"></span></div>
+
+<!-- ============ SQL.JS (WebAssembly SQLite) ============ -->
+<script src="https://cdn.jsdelivr.net/npm/sql.js@1.10.3/dist/sql-wasm.js"></script>
+
+<script>
+// =====================================================================
+// CONFIG DOS GAMES
+// =====================================================================
+const GAMES = {
+  ggplot:     { name:"ggplot2 Quest",     url:"ggplot-game.html",     icon:"insights",      color:"",       desc:"20 fases sobre a gramática dos gráficos: aes, geoms, facets, scales." },
+  dplyr:      { name:"dplyr Quest",       url:"dplyr-game.html",      icon:"data_object",   color:"green",  desc:"20 fases sobre verbos do dplyr: select, filter, mutate, group_by, joins." },
+  import:     { name:"import Quest",      url:"import-game.html",     icon:"cloud_download",color:"orange", desc:"20 fases sobre importação: read_csv, read_excel, read_sav, JSON, RDS." },
+  regression: { name:"regression Quest",  url:"regression-game.html", icon:"trending_up",   color:"purple", desc:"20 fases sobre RLS e RLM: lm, summary, R², ANOVA, VIF, diagnósticos." }
+};
+
+// =====================================================================
+// BANCO SQLITE (sql.js)
+// =====================================================================
+let db;
+let userId = null;
+
+const SCHEMA = `
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL,
+    email TEXT,
+    data_nascimento TEXT,
+    created_at TEXT DEFAULT (datetime('now','localtime'))
+  );
+  CREATE TABLE IF NOT EXISTS scores (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    game TEXT NOT NULL,
+    pontos INTEGER NOT NULL,
+    dicas INTEGER DEFAULT 0,
+    erros INTEGER DEFAULT 0,
+    completed_at TEXT DEFAULT (datetime('now','localtime')),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  );
+`;
+
+async function initDb() {
+  try {
+    const SQL = await initSqlJs({
+      locateFile: f => `https://cdn.jsdelivr.net/npm/sql.js@1.10.3/dist/${f}`
+    });
+    const saved = localStorage.getItem('evante_db');
+    if (saved) {
+      const bytes = Uint8Array.from(atob(saved), c => c.charCodeAt(0));
+      db = new SQL.Database(bytes);
+      db.run(SCHEMA);     // garante tabelas
+    } else {
+      db = new SQL.Database();
+      db.run(SCHEMA);
+      saveDb();
+    }
+    document.getElementById('db-status-text').textContent = 'SQLite conectado';
+    return true;
+  } catch (e) {
+    console.error('Erro ao iniciar SQLite:', e);
+    const status = document.getElementById('db-status');
+    status.classList.add('error');
+    document.getElementById('db-status-text').textContent = 'Sem conexão · sql.js bloqueado';
+    toast('error', 'Erro ao carregar SQLite. Verifique sua conexão.', 'error');
+    return false;
+  }
+}
+
+function saveDb() {
+  if (!db) return;
+  const bytes = db.export();
+  let bin = '';
+  const chunkSize = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+  }
+  localStorage.setItem('evante_db', btoa(bin));
+}
+
+function queryAll(sql, params=[]) {
+  if (!db) return [];
+  const stmt = db.prepare(sql);
+  stmt.bind(params);
+  const rows = [];
+  while (stmt.step()) rows.push(stmt.getAsObject());
+  stmt.free();
+  return rows;
+}
+
+function run(sql, params=[]) {
+  if (!db) return;
+  const stmt = db.prepare(sql);
+  stmt.bind(params);
+  stmt.step();
+  stmt.free();
+  saveDb();
+}
+
+function runReturningId(sql, params=[]) {
+  run(sql, params);
+  const r = queryAll('SELECT last_insert_rowid() AS id');
+  return r[0].id;
+}
+
+// =====================================================================
+// AUTENTICAÇÃO (sessão local)
+// =====================================================================
+function trocarTela(id) {
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function cadastrar() {
+  const nome = document.getElementById('login-nome').value.trim();
+  const email = document.getElementById('login-email').value.trim();
+  const data = document.getElementById('login-data').value;
+  if (!nome) { toast('error', 'Por favor, informe seu nome.'); return; }
+  if (!data) { toast('error', 'Por favor, informe a data de nascimento.'); return; }
+
+  // Verifica se já existe usuário com mesmo nome+email
+  const existing = queryAll('SELECT id FROM users WHERE nome = ? AND IFNULL(email,"") = ?', [nome, email]);
+  let id;
+  if (existing.length > 0) {
+    id = existing[0].id;
+    toast('success', 'Bem-vindo de volta!');
+  } else {
+    id = runReturningId(
+      'INSERT INTO users (nome, email, data_nascimento) VALUES (?, ?, ?)',
+      [nome, email || null, data]
+    );
+    toast('success', 'Cadastro realizado!');
+  }
+  localStorage.setItem('evante_user_id', id);
+  userId = id;
+  irParaHub();
+}
+
+function mostrarRetomar() {
+  const sel = document.getElementById('retomar-select');
+  const users = queryAll('SELECT id, nome, IFNULL(email, "") AS email FROM users ORDER BY nome');
+  sel.innerHTML = '';
+  if (users.length === 0) {
+    sel.innerHTML = '<option>Nenhum cadastro anterior</option>';
+  } else {
+    users.forEach(u => {
+      const o = document.createElement('option');
+      o.value = u.id;
+      o.textContent = u.nome + (u.email ? ' · ' + u.email : '');
+      sel.appendChild(o);
+    });
+  }
+  document.getElementById('retomar-box').style.display = 'block';
+}
+
+function retomar() {
+  const sel = document.getElementById('retomar-select');
+  const id = parseInt(sel.value);
+  if (!id) return;
+  localStorage.setItem('evante_user_id', id);
+  userId = id;
+  toast('success', 'Sessão retomada.');
+  irParaHub();
+}
+
+function logout() {
+  localStorage.removeItem('evante_user_id');
+  userId = null;
+  document.getElementById('user-info').style.display = 'none';
+  document.getElementById('btn-logout').style.display = 'none';
+  trocarTela('screen-hero');
+}
+
+function irParaHub() {
+  const u = queryAll('SELECT * FROM users WHERE id = ?', [userId])[0];
+  if (!u) { logout(); return; }
+  // header
+  document.getElementById('user-info').style.display = 'block';
+  document.getElementById('btn-logout').style.display = 'inline-flex';
+  document.getElementById('user-name').textContent = u.nome;
+  document.getElementById('user-avatar').textContent = u.nome.charAt(0).toUpperCase();
+  // welcome
+  document.getElementById('hub-nome').textContent = u.nome.split(' ')[0];
+  // renderiza tudo
+  renderGames();
+  renderRanking();
+  renderHistorico();
+  renderAdmin();
+  trocarTela('screen-hub');
+}
+
+// =====================================================================
+// RENDERIZAÇÃO DAS TABS
+// =====================================================================
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('tab-' + t.dataset.tab).classList.add('active');
+    if (t.dataset.tab === 'ranking') renderRanking();
+    if (t.dataset.tab === 'historico') renderHistorico();
+    if (t.dataset.tab === 'admin') renderAdmin();
+  });
+});
+
+function renderGames() {
+  const grid = document.getElementById('games-grid');
+  grid.innerHTML = '';
+  Object.entries(GAMES).forEach(([key, g]) => {
+    const best = queryAll(
+      'SELECT MAX(pontos) AS best FROM scores WHERE user_id = ? AND game = ?',
+      [userId, key]
+    )[0].best;
+    const card = document.createElement('div');
+    card.className = 'game-card';
+    card.innerHTML = `
+      <div class="game-card-head ${g.color}">
+        <span class="material-icons">${g.icon}</span>
+        <h3>${g.name}</h3>
+        <div class="level">20 fases progressivas</div>
+      </div>
+      <div class="game-card-body">
+        <p>${g.desc}</p>
+        <div class="game-card-foot">
+          <span class="game-best">
+            ${best ? '<span class="material-icons">stars</span>Melhor: ' + best + ' pts' : '<span class="material-icons">videogame_asset</span>Ainda não jogou'}
+          </span>
+          <button class="btn btn-contained" onclick="abrirGame('${key}')">
+            Jogar<span class="material-icons">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function abrirGame(key) {
+  const g = GAMES[key];
+  // dica visual: já preseleciona o game no form do histórico para registrar a pontuação depois
+  document.getElementById('sub-game').value = key;
+  toast('success', `Abrindo ${g.name}... volte aqui para registrar sua pontuação no menu "Meu histórico".`);
+  window.open(g.url, '_blank');
+}
+
+function renderRanking() {
+  const filter = document.getElementById('ranking-filter').value;
+  const tbody = document.getElementById('ranking-body');
+  const thGame = document.getElementById('th-game');
+  let rows;
+  if (filter) {
+    thGame.style.display = '';
+    rows = queryAll(`
+      SELECT u.nome,
+             s.game,
+             MAX(s.pontos) AS pontos,
+             MIN(s.dicas)  AS dicas,
+             MIN(s.erros)  AS erros,
+             MAX(s.completed_at) AS quando
+      FROM scores s
+      JOIN users u ON u.id = s.user_id
+      WHERE s.game = ?
+      GROUP BY u.id
+      ORDER BY pontos DESC
+      LIMIT 20
+    `, [filter]);
+  } else {
+    thGame.style.display = 'none';
+    rows = queryAll(`
+      SELECT u.nome,
+             SUM(best.melhor_pontos) AS pontos,
+             SUM(best.dicas) AS dicas,
+             SUM(best.erros) AS erros,
+             MAX(best.quando) AS quando,
+             COUNT(*) AS games
+      FROM (
+        SELECT user_id, game,
+               MAX(pontos)        AS melhor_pontos,
+               MIN(dicas)         AS dicas,
+               MIN(erros)         AS erros,
+               MAX(completed_at)  AS quando
+        FROM scores
+        GROUP BY user_id, game
+      ) best
+      JOIN users u ON u.id = best.user_id
+      GROUP BY u.id
+      ORDER BY pontos DESC
+      LIMIT 20
+    `);
+  }
+  tbody.innerHTML = '';
+  if (rows.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="${filter ? 7 : 6}" style="text-align:center;color:var(--text-secondary);padding:32px;">
+      Ainda não há pontuações registradas. Jogue um game e registre seu score na aba <em>Meu histórico</em>.
+    </td></tr>`;
+    return;
+  }
+  rows.forEach((r, i) => {
+    const tr = document.createElement('tr');
+    if (i === 0) tr.classList.add('top-1');
+    else if (i === 1) tr.classList.add('top-2');
+    else if (i === 2) tr.classList.add('top-3');
+    const medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : (i + 1)));
+    const gameCell = filter
+      ? `<td><span class="game-badge ${GAMES[r.game].color}">${GAMES[r.game].name.replace(' Quest','')}</span></td>`
+      : '';
+    tr.innerHTML = `
+      <td class="rank">${medal}</td>
+      <td><strong>${escapeHTML(r.nome)}</strong></td>
+      ${gameCell}
+      <td class="num"><strong>${r.pontos || 0}</strong></td>
+      <td class="num">${r.dicas || 0}</td>
+      <td class="num">${r.erros || 0}</td>
+      <td class="num">${formatDate(r.quando)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderHistorico() {
+  const tbody = document.getElementById('historico-body');
+  const rows = queryAll(
+    'SELECT id, game, pontos, dicas, erros, completed_at FROM scores WHERE user_id = ? ORDER BY completed_at DESC',
+    [userId]
+  );
+  tbody.innerHTML = '';
+  if (rows.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:32px;">
+      Nenhuma partida registrada. Após jogar um game, registre sua pontuação no formulário acima.
+    </td></tr>`;
+    return;
+  }
+  rows.forEach(r => {
+    const tr = document.createElement('tr');
+    const g = GAMES[r.game];
+    tr.innerHTML = `
+      <td><span class="game-badge ${g ? g.color : ''}">${g ? g.name.replace(' Quest','') : r.game}</span></td>
+      <td class="num"><strong>${r.pontos}</strong></td>
+      <td class="num">${r.dicas}</td>
+      <td class="num">${r.erros}</td>
+      <td class="num">${formatDate(r.completed_at)}</td>
+      <td><button class="btn btn-text" onclick="removerScore(${r.id})"><span class="material-icons">delete_outline</span></button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function salvarScore() {
+  const game   = document.getElementById('sub-game').value;
+  const pontos = parseInt(document.getElementById('sub-pontos').value);
+  const dicas  = parseInt(document.getElementById('sub-dicas').value) || 0;
+  const erros  = parseInt(document.getElementById('sub-erros').value) || 0;
+  if (isNaN(pontos) || pontos < 0) { toast('error', 'Informe uma pontuação válida.'); return; }
+  if (pontos > 2000) { toast('error', 'Pontuação máxima por game é 2000 (20 fases × 100).'); return; }
+  run(
+    'INSERT INTO scores (user_id, game, pontos, dicas, erros) VALUES (?, ?, ?, ?, ?)',
+    [userId, game, pontos, dicas, erros]
+  );
+  toast('success', `Pontuação de ${pontos} salva!`);
+  document.getElementById('sub-pontos').value = '';
+  document.getElementById('sub-dicas').value = '0';
+  document.getElementById('sub-erros').value = '0';
+  renderHistorico();
+  renderGames();
+  renderAdmin();
+}
+
+function removerScore(id) {
+  if (!confirm('Remover esta partida do seu histórico?')) return;
+  run('DELETE FROM scores WHERE id = ? AND user_id = ?', [id, userId]);
+  toast('success', 'Partida removida.');
+  renderHistorico();
+  renderGames();
+  renderAdmin();
+}
+
+function renderAdmin() {
+  const users  = queryAll('SELECT COUNT(*) AS n FROM users')[0].n;
+  const scores = queryAll('SELECT COUNT(*) AS n FROM scores')[0].n;
+  const pts    = queryAll('SELECT IFNULL(SUM(pontos), 0) AS s FROM scores')[0].s;
+  const size   = localStorage.getItem('evante_db') ? Math.round(localStorage.getItem('evante_db').length / 1024) : 0;
+  document.getElementById('stat-users').textContent  = users;
+  document.getElementById('stat-scores').textContent = scores;
+  document.getElementById('stat-pts').textContent    = pts;
+  document.getElementById('stat-db-size').textContent = size;
+}
+
+// =====================================================================
+// ADMIN (export / import / reset)
+// =====================================================================
+function exportarBanco() {
+  const bytes = db.export();
+  const blob = new Blob([bytes], { type: 'application/x-sqlite3' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `evante_${new Date().toISOString().slice(0,10)}.sqlite`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('success', 'Banco exportado.');
+}
+
+async function importarBanco(file) {
+  if (!file) return;
+  if (!confirm(`Substituir o banco atual pelo arquivo "${file.name}"?`)) return;
+  const buf = await file.arrayBuffer();
+  const SQL = await initSqlJs({ locateFile: f => `https://cdn.jsdelivr.net/npm/sql.js@1.10.3/dist/${f}` });
+  db = new SQL.Database(new Uint8Array(buf));
+  db.run(SCHEMA);
+  saveDb();
+  toast('success', 'Banco importado com sucesso.');
+  renderRanking(); renderHistorico(); renderAdmin(); renderGames();
+}
+
+function resetarBanco() {
+  if (!confirm('Apagar TODOS os dados (usuários e pontuações)? Esta ação não pode ser desfeita.')) return;
+  if (!confirm('Tem certeza? Considere exportar antes.')) return;
+  localStorage.removeItem('evante_db');
+  localStorage.removeItem('evante_user_id');
+  location.reload();
+}
+
+// =====================================================================
+// UTILS
+// =====================================================================
+function escapeHTML(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
+
+function formatDate(s) {
+  if (!s) return '—';
+  // SQLite datetime: "YYYY-MM-DD HH:MM:SS"
+  const d = new Date(s.replace(' ', 'T'));
+  if (isNaN(d)) return s;
+  return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+}
+
+function toast(tipo, msg, icon) {
+  const t = document.getElementById('toast');
+  t.className = 'toast show ' + (tipo === 'error' ? 'error' : 'success');
+  document.getElementById('toast-icon').textContent = icon || (tipo === 'error' ? 'error' : 'check_circle');
+  document.getElementById('toast-msg').textContent = msg;
+  clearTimeout(t._tid);
+  t._tid = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// =====================================================================
+// BOOT
+// =====================================================================
+(async () => {
+  const ok = await initDb();
+  if (!ok) return;
+
+  // Restaura sessão se houver
+  const savedUserId = parseInt(localStorage.getItem('evante_user_id'));
+  if (savedUserId) {
+    const u = queryAll('SELECT * FROM users WHERE id = ?', [savedUserId]);
+    if (u.length > 0) {
+      userId = savedUserId;
+      irParaHub();
+      return;
+    }
+  }
+  // Setar data padrão como 1/1/2000
+  const dataInput = document.getElementById('login-data');
+  if (!dataInput.value) dataInput.value = '2000-01-01';
+})();
+</script>
+</body>
+</html>
