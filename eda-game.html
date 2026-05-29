@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>fundamentos Quest · Estatística descritiva</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500;700&family=Source+Serif+Pro:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary:        #1976d2;
+    --primary-dark:   #1565c0;
+    --primary-light:  #42a5f5;
+    --theory:         #c2185b;        /* pink 700 — fundamentos */
+    --theory-soft:    #fce4ec;
+    --error:          #d32f2f;
+    --warning:        #ed6c02;
+    --success:        #2e7d32;
+    --bg:             #f5f5f5;
+    --paper:          #ffffff;
+    --surface-2:      #fafafa;
+    --divider:        rgba(0,0,0,0.12);
+    --text-primary:   rgba(0,0,0,0.87);
+    --text-secondary: rgba(0,0,0,0.6);
+    --on-primary:     #ffffff;
+    --e1: 0 2px 1px -1px rgba(0,0,0,0.2), 0 1px 1px 0 rgba(0,0,0,0.14), 0 1px 3px 0 rgba(0,0,0,0.12);
+    --e2: 0 3px 1px -2px rgba(0,0,0,0.2), 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12);
+    --e4: 0 2px 4px -1px rgba(0,0,0,0.2), 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12);
+  }
+  body {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg); color: var(--text-primary);
+    min-height: 100vh; -webkit-font-smoothing: antialiased; line-height: 1.5;
+  }
+
+  .appbar {
+    background: var(--primary); color: var(--on-primary);
+    box-shadow: var(--e4); position: sticky; top: 0; z-index: 100;
+    padding: 0 24px; display: flex; align-items: center; justify-content: space-between;
+    min-height: 64px;
+  }
+  .appbar-brand { display: inline-flex; align-items: center; margin-right: 16px; text-decoration: none; }
+  .appbar-brand img { height: 36px; display: block; border-radius: 8px; background: white; padding: 2px; transition: transform 0.2s; }
+  .appbar-brand:hover img { transform: scale(1.04); }
+  .appbar-left { display: flex; align-items: center; }
+  .appbar-title { display: flex; align-items: center; gap: 12px; font-size: 20px; font-weight: 500; letter-spacing: 0.0075em; }
+  .appbar-title .material-icons { font-size: 28px; }
+  .appbar-title .sub { font-size: 12px; font-weight: 400; opacity: 0.85; margin-left: 8px; }
+  .hud { display: flex; gap: 8px; align-items: center; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.16); color: var(--on-primary); padding: 6px 12px; border-radius: 16px; font-size: 13px; font-weight: 500; }
+  .chip .material-icons { font-size: 18px; }
+  .chip-progress { background: rgba(255,255,255,0.16); width: 140px; height: 4px; border-radius: 2px; overflow: hidden; margin-left: 8px; }
+  .chip-progress > div { height: 100%; background: var(--on-primary); width: 0%; transition: width 0.4s; }
+
+  .screen { display: none; padding: 32px 24px 64px; }
+  .screen.active { display: block; }
+
+  #screen-start {
+    text-align: center; padding-top: 80px; min-height: 85vh;
+    display: none; flex-direction: column; align-items: center;
+  }
+  #screen-start.active { display: flex; }
+  #screen-start h1 { font-size: 60px; font-weight: 300; letter-spacing: -0.5px; color: var(--text-primary); margin-bottom: 16px; }
+  #screen-start h1 .accent { color: var(--primary); font-weight: 500; }
+  #screen-start .lead { font-size: 16px; color: var(--text-secondary); max-width: 660px; margin: 0 auto 8px; line-height: 1.6; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px; border: none; cursor: pointer; font-family: inherit;
+    font-weight: 500; font-size: 14px; letter-spacing: 0.02857em;
+    text-transform: uppercase; padding: 8px 22px; min-height: 36px;
+    border-radius: 4px; transition: all 0.2s;
+    position: relative; overflow: hidden; user-select: none;
+  }
+  .btn .material-icons { font-size: 18px; }
+  .btn-contained { background: var(--primary); color: var(--on-primary); box-shadow: var(--e2); }
+  .btn-contained:hover { background: var(--primary-dark); box-shadow: var(--e4); }
+  .btn-text { background: transparent; color: var(--primary); padding: 6px 16px; }
+  .btn-text:hover { background: rgba(25,118,210,0.08); }
+  .btn-fab { margin-top: 40px; padding: 14px 40px; font-size: 15px; min-height: 48px; border-radius: 8px; }
+  .btn::after {
+    content: ''; position: absolute; top: 50%; left: 50%;
+    width: 0; height: 0; border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease;
+    pointer-events: none;
+  }
+  .btn-text::after { background: rgba(25,118,210,0.2); }
+  .btn:active::after { width: 220%; height: 220%; transition: 0s; }
+
+  .card { background: var(--paper); border-radius: 8px; box-shadow: var(--e1); padding: 24px; }
+  .card-feature { background: var(--paper); border-radius: 8px; box-shadow: var(--e1); padding: 28px; text-align: left; }
+  .feature-icon {
+    width: 48px; height: 48px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: rgba(194,24,91,0.12); color: var(--theory); margin-bottom: 16px;
+  }
+  .feature-icon .material-icons { font-size: 28px; }
+  .card-feature h3 { font-size: 18px; font-weight: 500; margin-bottom: 8px; color: var(--text-primary); }
+  .card-feature p { font-size: 14px; color: var(--text-secondary); line-height: 1.55; }
+  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 56px; max-width: 960px; width: 100%; }
+
+  .game-grid { display: grid; grid-template-columns: 1fr 1.05fr; gap: 24px; max-width: 1480px; margin: 0 auto; }
+  .panel-title {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 500; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-secondary); margin-bottom: 16px;
+  }
+  .panel-title .material-icons { font-size: 18px; color: var(--primary); }
+  .level-title { font-size: 22px; font-weight: 500; color: var(--text-primary); margin-bottom: 4px; }
+  .level-desc { color: var(--text-secondary); font-size: 14px; line-height: 1.55; margin-bottom: 20px; }
+
+  .theory-card {
+    background: var(--theory-soft);
+    border-left: 4px solid var(--theory);
+    border-radius: 4px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+  }
+  .theory-head {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--theory);
+    margin-bottom: 10px;
+  }
+  .theory-head .material-icons { font-size: 18px; }
+  .theory-title { font-size: 16px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px; }
+  .theory-text { font-size: 14px; color: var(--text-primary); line-height: 1.6; margin-bottom: 12px; }
+  .theory-text strong { color: var(--theory); font-weight: 500; }
+
+  .formula {
+    background: #fff;
+    border: 1px solid rgba(194,24,91,0.2);
+    border-radius: 4px;
+    padding: 14px 18px;
+    text-align: center;
+    font-family: 'Source Serif Pro', Georgia, serif;
+    font-size: 18px; font-style: italic;
+    color: var(--text-primary);
+    margin: 8px 0 12px;
+    letter-spacing: 0.5px;
+  }
+  .formula .var-sub { font-size: 11px; vertical-align: sub; font-style: normal; }
+  .formula .var-sup { font-size: 11px; vertical-align: super; font-style: normal; }
+
+  .theory-note {
+    font-size: 13px; color: var(--text-secondary);
+    line-height: 1.55;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(194,24,91,0.2);
+  }
+
+  .scenario {
+    margin-top: 8px; padding: 14px 18px;
+    background: var(--surface-2); border-radius: 4px;
+    border-left: 3px solid var(--success);
+  }
+  .scenario-title {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-secondary); font-weight: 600; margin-bottom: 6px;
+  }
+  .scenario-content {
+    font-size: 14px; color: var(--text-primary); line-height: 1.6;
+  }
+  .scenario-content code {
+    background: rgba(0,0,0,0.04); padding: 2px 6px; border-radius: 3px;
+    font-family: 'Roboto Mono', monospace; font-size: 13px;
+  }
+
+  /* Frase com lacunas (em vez de code-block) */
+  .answer-block {
+    background: #fafafa; color: #212121;
+    padding: 22px 26px; border-radius: 4px;
+    border: 1px solid var(--divider);
+    font-size: 15.5px; line-height: 2.4;
+    margin-bottom: 20px; min-height: 110px;
+  }
+  .slot {
+    display: inline-block; min-width: 110px;
+    padding: 4px 14px; margin: 0 4px;
+    background: #fff; border: 1.5px dashed #9e9e9e;
+    border-radius: 4px; color: #9e9e9e;
+    text-align: center; font-style: italic;
+    vertical-align: middle; transition: all 0.15s;
+    font-size: 14px;
+  }
+  .slot.over    { background: rgba(25,118,210,0.08); border-color: var(--primary); border-style: solid; }
+  .slot.filled  { background: rgba(25,118,210,0.08); border: 1.5px solid var(--primary); color: var(--primary-dark); font-style: normal; font-weight: 500; cursor: pointer; }
+  .slot.wrong   { background: rgba(211,47,47,0.08); border: 1.5px solid var(--error); color: var(--error); }
+  .slot.correct { background: rgba(46,125,50,0.08); border: 1.5px solid var(--success); color: var(--success); }
+
+  .bank-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); margin-bottom: 12px; font-weight: 500; }
+  .bank {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    min-height: 88px; padding: 16px;
+    background: var(--surface-2); border-radius: 4px; border: 1px solid var(--divider);
+  }
+  .block {
+    display: inline-flex; align-items: center; padding: 8px 16px;
+    background: var(--paper); color: var(--text-primary);
+    border: 1px solid var(--divider); border-radius: 16px;
+    font-size: 14px; font-weight: 500;
+    cursor: grab; user-select: none;
+    transition: all 0.15s; box-shadow: var(--e1);
+  }
+  .block:hover { background: var(--surface-2); box-shadow: var(--e2); transform: translateY(-1px); }
+  .block:active { cursor: grabbing; }
+  .block.dragging { opacity: 0.4; }
+  .block.used { display: none; }
+
+  .actions { display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; justify-content: flex-end; }
+
+  .feedback {
+    margin-top: 16px; padding: 12px 16px; border-radius: 4px;
+    font-size: 14px; line-height: 1.5;
+    border-left: 4px solid; display: none; align-items: flex-start; gap: 10px;
+  }
+  .feedback.show { display: flex; }
+  .feedback.success { background: #edf7ed; color: #1e4620; border-color: var(--success); }
+  .feedback.error   { background: #fdecea; color: #5f2120; border-color: var(--error); }
+  .feedback.hint    { background: #fff4e5; color: #663c00; border-color: var(--warning); }
+  .feedback .material-icons { font-size: 22px; }
+  .feedback.success .material-icons { color: var(--success); }
+  .feedback.error .material-icons   { color: var(--error); }
+  .feedback.hint .material-icons    { color: var(--warning); }
+
+  #screen-end { text-align: center; padding-top: 80px; min-height: 80vh; }
+  #screen-end h1 { font-size: 48px; font-weight: 300; color: var(--text-primary); margin-bottom: 12px; letter-spacing: -0.5px; }
+  #screen-end .end-sub { font-size: 16px; color: var(--text-secondary); max-width: 560px; margin: 0 auto; }
+  .final-score-card { background: var(--paper); border-radius: 8px; box-shadow: var(--e2); padding: 32px; margin: 32px auto; max-width: 480px; }
+  .final-score { font-size: 72px; font-weight: 300; color: var(--primary); margin: 8px 0; letter-spacing: -2px; }
+  .stars { font-size: 36px; margin: 8px 0 16px; letter-spacing: 10px; }
+  .final-stats { display: flex; justify-content: center; gap: 56px; flex-wrap: wrap; }
+  .final-stat .v { font-size: 28px; font-weight: 500; color: var(--text-primary); }
+  .final-stat .l { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .card, .panel-game { animation: fadeIn 0.3s ease; }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  .shake { animation: shake 0.35s; }
+  #confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 200; display: none; }
+
+  @media (max-width: 960px) {
+    .game-grid { grid-template-columns: 1fr; }
+    .features-grid { grid-template-columns: 1fr; }
+    .hud .chip-progress { display: none; }
+    #screen-start h1 { font-size: 40px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="appbar">
+  <div class="appbar-left">
+    <a href="index.html" class="appbar-brand" title="Voltar ao portal Evante">
+      <img src="Evante-01.jpg" alt="Evante" />
+    </a>
+    <div class="appbar-title">
+      <span class="material-icons">school</span>
+      fundamentos Quest <span class="sub">· Estatística descritiva</span>
+    </div>
+  </div>
+  <div class="hud" id="hud" style="display:none;">
+    <div class="chip"><span class="material-icons">flag</span><span id="hud-level">1</span>/<span id="hud-total">20</span></div>
+    <div class="chip-progress"><div id="progress-fill"></div></div>
+    <div class="chip"><span class="material-icons">stars</span><span id="hud-score">0</span></div>
+    <div class="chip"><span class="material-icons">favorite</span><span id="hud-lives">3</span></div>
+  </div>
+</header>
+
+<section id="screen-start" class="screen active">
+  <h1>fundamentos <span class="accent">Quest</span></h1>
+  <p class="lead">Aprenda <strong>estatística descritiva e exploratória</strong> apenas com conceitos — sem código, sem software.</p>
+  <p class="lead">20 fases sobre tipos de variável, escalas de mensuração, medidas de tendência central, dispersão, posição, forma e escolha de gráficos.</p>
+
+  <button class="btn btn-contained btn-fab" onclick="iniciarJogo()">
+    <span class="material-icons">play_arrow</span>Começar
+  </button>
+
+  <div class="features-grid">
+    <div class="card-feature">
+      <div class="feature-icon"><span class="material-icons">menu_book</span></div>
+      <h3>Conceitos puros</h3>
+      <p>Definições, fórmulas e a interpretação de cada medida estatística — sem depender de nenhum software.</p>
+    </div>
+    <div class="card-feature">
+      <div class="feature-icon"><span class="material-icons">calculate</span></div>
+      <h3>Pratique cálculos</h3>
+      <p>Exercícios curtos com números pequenos: média, mediana, IQR, variância, desvio padrão, coeficiente de variação.</p>
+    </div>
+    <div class="card-feature">
+      <div class="feature-icon"><span class="material-icons">insights</span></div>
+      <h3>Escolha certa</h3>
+      <p>Aprenda a escolher a medida e o gráfico adequados para cada tipo de variável e situação.</p>
+    </div>
+  </div>
+</section>
+
+<section id="screen-game" class="screen">
+  <div class="game-grid">
+    <div class="card panel-game">
+      <div class="panel-title"><span class="material-icons">menu_book</span>Conceito</div>
+      <div class="level-title" id="level-title">Fase 1</div>
+      <div class="level-desc" id="level-desc"></div>
+
+      <div class="theory-card">
+        <div class="theory-head"><span class="material-icons">functions</span><span id="theory-tag">Teoria</span></div>
+        <div class="theory-title" id="theory-title"></div>
+        <div class="theory-text" id="theory-text"></div>
+        <div class="formula" id="theory-formula"></div>
+        <div class="theory-note" id="theory-note"></div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-title">Situação</div>
+        <div class="scenario-content" id="scenario-content"></div>
+      </div>
+    </div>
+
+    <div class="card panel-game">
+      <div class="panel-title"><span class="material-icons">edit</span>Complete a frase</div>
+      <div class="answer-block" id="code-template"></div>
+
+      <div class="bank-title">Opções · arraste para as lacunas</div>
+      <div class="bank" id="block-bank"></div>
+
+      <div class="feedback" id="feedback">
+        <span class="material-icons" id="feedback-icon">info</span>
+        <span id="feedback-msg"></span>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-text" onclick="usarDica()"><span class="material-icons">lightbulb</span>Dica · -30</button>
+        <button class="btn btn-text" onclick="reiniciarFase()"><span class="material-icons">refresh</span>Reiniciar</button>
+        <button class="btn btn-contained" id="btn-check" onclick="verificar()"><span class="material-icons">check_circle</span>Verificar</button>
+        <button class="btn btn-contained" id="btn-next" onclick="proximaFase()" style="display:none;">Próxima<span class="material-icons">arrow_forward</span></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="screen-end" class="screen">
+  <h1 id="end-title">Parabéns</h1>
+  <p class="end-sub" id="end-msg">Você completou todas as fases.</p>
+  <div class="final-score-card">
+    <div class="stars" id="end-stars">⭐⭐⭐</div>
+    <div class="final-score" id="end-score">0</div>
+    <div class="final-stats">
+      <div class="final-stat"><div class="v" id="end-level">20</div><div class="l">Fases</div></div>
+      <div class="final-stat"><div class="v" id="end-hints">0</div><div class="l">Dicas</div></div>
+      <div class="final-stat"><div class="v" id="end-errors">0</div><div class="l">Erros</div></div>
+    </div>
+  </div>
+  <button class="btn btn-contained btn-fab" onclick="reiniciarJogo()">
+    <span class="material-icons">replay</span>Jogar de novo
+  </button>
+</section>
+
+<canvas id="confetti"></canvas>
+
+<script>
+// =====================================================================
+// 20 FASES — Estatística descritiva (conceitual, sem R)
+// =====================================================================
+const FASES = [
+  // -------------------- BLOCO 1: TIPOS DE VARIÁVEL --------------------
+  {
+    title: "Fase 1 — Variável quantitativa discreta",
+    desc: "Classifique uma variável de contagem.",
+    theory: {
+      tag: "Tipos de variável",
+      title: "Quantitativa: discreta × contínua",
+      text: "<strong>Quantitativas</strong> assumem valores numéricos. Se há lacunas entre valores possíveis (você só pode ter 0, 1, 2... filhos), é <strong>discreta</strong>. Se assume qualquer valor em um intervalo (altura 1.732m...), é <strong>contínua</strong>.",
+      formula: "discreta ↔ enumerável | contínua ↔ R",
+      note: "Regra prática: contagens são discretas; medições são contínuas."
+    },
+    scenario: "Uma pesquisa registra o <strong>número de filhos por família</strong>. Como classificar essa variável?",
+    template: ["Trata-se de uma variável quantitativa ", {slot:0}, "."],
+    answers: ["discreta"],
+    bank: ["discreta", "contínua", "nominal", "ordinal", "categórica", "qualitativa"],
+    hint: "Número de filhos só assume valores inteiros não-negativos (0, 1, 2...) — é uma contagem."
+  },
+
+  {
+    title: "Fase 2 — Variável quantitativa contínua",
+    desc: "Classifique uma variável de medição.",
+    theory: {
+      tag: "Tipos de variável",
+      title: "Mensurações em escala contínua",
+      text: "Altura, peso, tempo, temperatura, distância — qualquer valor entre dois pontos do intervalo é teoricamente atingível, dependendo só da <strong>precisão do instrumento</strong>.",
+      formula: "X ∈ [a, b] ⊂ ℝ",
+      note: "Mesmo que medimos com 2 casas decimais (instrumental), o conceito é contínuo."
+    },
+    scenario: "A <strong>altura em centímetros</strong> dos alunos é registrada com 1 casa decimal.",
+    template: ["É uma variável quantitativa ", {slot:0}, "."],
+    answers: ["contínua"],
+    bank: ["contínua", "discreta", "nominal", "ordinal", "categórica", "qualitativa"],
+    hint: "Entre duas alturas (1.70 e 1.71m), existem infinitos valores possíveis (1.703, 1.7045...)."
+  },
+
+  {
+    title: "Fase 3 — Escala ordinal",
+    desc: "Identifique a escala de mensuração.",
+    theory: {
+      tag: "Escalas",
+      title: "Nominal × Ordinal × Intervalar × Razão",
+      text: "Escala de Stevens (1946): <strong>nominal</strong> (rotular, sem ordem), <strong>ordinal</strong> (rotular com ordem, sem distância), <strong>intervalar</strong> (com distância, sem zero absoluto), <strong>razão</strong> (com zero absoluto).",
+      formula: "Nominal ⊂ Ordinal ⊂ Intervalar ⊂ Razão",
+      note: "Notas A, B, C, D, F são ordinais — sabemos que A > B, mas não que A − B = B − C."
+    },
+    scenario: "<strong>Nível de escolaridade</strong>: fundamental, médio, superior, pós-graduação.",
+    template: ["A escala dessa variável é ", {slot:0}, "."],
+    answers: ["ordinal"],
+    bank: ["ordinal", "nominal", "intervalar", "razão", "discreta", "contínua"],
+    hint: "Tem ORDEM (superior > médio > fundamental), mas não faz sentido falar em 'distância' entre níveis."
+  },
+
+  {
+    title: "Fase 4 — Escala nominal binária",
+    desc: "Identifique categoria sem ordem.",
+    theory: {
+      tag: "Escalas",
+      title: "Variável categórica nominal",
+      text: "Categórica em que <strong>não há ordem natural</strong> entre as categorias. Quando há apenas dois níveis, é chamada <em>binária</em> ou <em>dicotômica</em>.",
+      formula: "{c<span class='var-sub'>1</span>, c<span class='var-sub'>2</span>, ..., c<span class='var-sub'>k</span>} (sem ordem)",
+      note: "Tipos sanguíneos (A, B, AB, O), cor dos olhos, sexo biológico — todos nominais."
+    },
+    scenario: "A variável <strong>fumante (sim/não)</strong> coletada em um estudo de saúde pública.",
+    template: ["É uma variável categórica ", {slot:0}, " (binária)."],
+    answers: ["nominal"],
+    bank: ["nominal", "ordinal", "intervalar", "razão", "contínua", "discreta"],
+    hint: "Sim/Não não tem ordem natural — uma categoria não é 'maior' que a outra."
+  },
+
+  // -------------------- BLOCO 2: TENDÊNCIA CENTRAL --------------------
+  {
+    title: "Fase 5 — Cálculo da média",
+    desc: "Encontre a média aritmética de um conjunto pequeno.",
+    theory: {
+      tag: "Tendência central",
+      title: "Média aritmética",
+      text: "Soma de todas as observações dividida pela quantidade. Sensível a valores extremos.",
+      formula: "x̄ = (1/n) · Σ x<span class='var-sub'>i</span>",
+      note: "É o 'ponto de equilíbrio' da distribuição — também conhecida como esperança amostral."
+    },
+    scenario: "Considere as notas: <strong>4, 6, 8, 10, 12</strong>. (Soma = 40; n = 5)",
+    template: ["A média aritmética é igual a ", {slot:0}, "."],
+    answers: ["8"],
+    bank: ["8", "7", "10", "6", "9", "12"],
+    hint: "Média = (4 + 6 + 8 + 10 + 12) / 5 = 40 / 5."
+  },
+
+  {
+    title: "Fase 6 — Mediana com n ímpar",
+    desc: "Encontre a mediana de uma amostra ordenada.",
+    theory: {
+      tag: "Tendência central",
+      title: "Mediana",
+      text: "<strong>Valor central</strong> da amostra ordenada. Com n ímpar, é o ((n+1)/2)-ésimo termo. Com n par, é a média dos dois centrais.",
+      formula: "Md = x<span class='var-sub'>((n+1)/2)</span> se n ímpar",
+      note: "Robusta a outliers: usar mediana em distribuições assimétricas."
+    },
+    scenario: "Considere os valores ordenados: <strong>2, 5, 7, 9, 12</strong> (n = 5).",
+    template: ["A mediana é igual a ", {slot:0}, "."],
+    answers: ["7"],
+    bank: ["7", "5", "9", "6", "8", "12"],
+    hint: "Posição central = (5+1)/2 = 3ª posição. Olhe para o 3º valor."
+  },
+
+  {
+    title: "Fase 7 — Identificação da moda",
+    desc: "Encontre o valor mais frequente.",
+    theory: {
+      tag: "Tendência central",
+      title: "Moda",
+      text: "Valor (ou categoria) <strong>mais frequente</strong>. Conjuntos podem ser amodais, unimodais, bimodais ou multimodais. É a única medida de centro aplicável a variáveis nominais.",
+      formula: "Mo = arg max<span class='var-sub'>x</span> f(x)",
+      note: "Distribuições bimodais sugerem MISTURA de subpopulações — investigue antes de resumir."
+    },
+    scenario: "Considere os valores: <strong>2, 3, 5, 5, 7, 8, 8, 8</strong>. (Frequências: 2→1, 3→1, 5→2, 7→1, 8→3)",
+    template: ["A moda é igual a ", {slot:0}, "."],
+    answers: ["8"],
+    bank: ["8", "5", "2", "5.5", "média", "3"],
+    hint: "Procure o valor que aparece MAIS vezes. O 8 aparece 3 vezes — máximo da contagem."
+  },
+
+  {
+    title: "Fase 8 — Quando usar mediana",
+    desc: "Escolha a medida de tendência central correta para o cenário.",
+    theory: {
+      tag: "Tendência central",
+      title: "Robustez × Sensibilidade",
+      text: "A <strong>média</strong> usa todos os dados e é eficiente sob normalidade. A <strong>mediana</strong> ignora valores extremos e é robusta a outliers e assimetria. A <strong>moda</strong> é a única medida válida para nominais.",
+      formula: "Sob simetria: média ≈ mediana",
+      note: "Salário em uma empresa com 1 CEO milionário e 999 funcionários: a mediana descreve melhor o salário 'típico' que a média."
+    },
+    scenario: "Em uma distribuição com <strong>forte assimetria à direita</strong> (cauda longa de valores altos), qual medida de centro melhor representa o valor 'típico'?",
+    template: ["A medida mais adequada é a ", {slot:0}, "."],
+    answers: ["mediana"],
+    bank: ["mediana", "média", "moda", "amplitude", "variância", "intervalo"],
+    hint: "Em distribuições assimétricas, a média é puxada pela cauda. A mediana resiste."
+  },
+
+  // -------------------- BLOCO 3: DISPERSÃO --------------------
+  {
+    title: "Fase 9 — Amplitude",
+    desc: "Calcule a medida de dispersão mais simples.",
+    theory: {
+      tag: "Dispersão",
+      title: "Amplitude total",
+      text: "Diferença entre o maior e o menor valor. Simples mas pouco robusta — depende só de 2 observações.",
+      formula: "R = x<span class='var-sub'>máx</span> − x<span class='var-sub'>mín</span>",
+      note: "Sempre cresce com n (já que máx pode aumentar e mín diminuir). Não é resistente a outliers."
+    },
+    scenario: "Considere o conjunto: <strong>3, 5, 9, 12, 15</strong>.",
+    template: ["A amplitude é igual a ", {slot:0}, "."],
+    answers: ["12"],
+    bank: ["12", "9", "15", "3", "8", "7"],
+    hint: "R = 15 − 3."
+  },
+
+  {
+    title: "Fase 10 — Variância amostral",
+    desc: "Calcule a variância de um conjunto pequeno.",
+    theory: {
+      tag: "Dispersão",
+      title: "Variância amostral (s²)",
+      text: "Média dos <strong>desvios quadrados</strong> em relação à média, dividida por n−1 (correção de Bessel).",
+      formula: "s² = (1/(n−1)) · Σ(x<span class='var-sub'>i</span> − x̄)²",
+      note: "Está na unidade ao QUADRADO da variável — por isso costumamos relatar o desvio padrão."
+    },
+    scenario: "Conjunto: <strong>2, 4, 6</strong>. Média = 4. Desvios: −2, 0, +2. Quadrados: 4, 0, 4. Soma = 8.",
+    template: ["A variância amostral é igual a ", {slot:0}, "."],
+    answers: ["4"],
+    bank: ["4", "2.67", "8", "2", "1.63", "6"],
+    hint: "s² = 8 / (3−1) = 8/2."
+  },
+
+  {
+    title: "Fase 11 — Desvio padrão",
+    desc: "Converta variância em desvio padrão.",
+    theory: {
+      tag: "Dispersão",
+      title: "Desvio padrão (s)",
+      text: "Raiz quadrada da variância. Fica na <strong>mesma unidade</strong> dos dados — mais interpretável.",
+      formula: "s = √s²",
+      note: "Sob normalidade, ~68% dos dados ficam em x̄ ± 1s e ~95% em x̄ ± 2s (regra empírica)."
+    },
+    scenario: "Em um conjunto de dados, a variância é igual a <strong>16</strong>.",
+    template: ["O desvio padrão é igual a ", {slot:0}, "."],
+    answers: ["4"],
+    bank: ["4", "8", "16", "256", "2", "32"],
+    hint: "Desvio padrão = √variância = √16."
+  },
+
+  {
+    title: "Fase 12 — Coeficiente de variação",
+    desc: "Calcule a dispersão relativa.",
+    theory: {
+      tag: "Dispersão",
+      title: "Coeficiente de variação (CV)",
+      text: "Mede dispersão <strong>relativa à média</strong>, em porcentagem. Útil para comparar variabilidades de grupos com escalas diferentes.",
+      formula: "CV = (s / x̄) · 100%",
+      note: "CV alto (>30%) sugere dados muito heterogêneos. Cuidado: se média é próxima de zero, CV fica instável."
+    },
+    scenario: "Em uma amostra, a média é <strong>50</strong> e o desvio padrão é <strong>10</strong>.",
+    template: ["O coeficiente de variação é igual a ", {slot:0}, "."],
+    answers: ["20%"],
+    bank: ["20%", "10%", "50%", "5%", "0.2%", "200%"],
+    hint: "CV = (10 / 50) · 100% = 0.2 · 100%."
+  },
+
+  // -------------------- BLOCO 4: POSIÇÃO E FORMA --------------------
+  {
+    title: "Fase 13 — Quartil e percentil",
+    desc: "Relacione quartis com percentis.",
+    theory: {
+      tag: "Posição",
+      title: "Quartis e percentis",
+      text: "Os <strong>quartis</strong> dividem a distribuição em 4 partes iguais; os <strong>percentis</strong> em 100. Logo, cada quartil corresponde a um percentil específico.",
+      formula: "Q<span class='var-sub'>1</span> = P<span class='var-sub'>25</span> · Q<span class='var-sub'>2</span> = P<span class='var-sub'>50</span> · Q<span class='var-sub'>3</span> = P<span class='var-sub'>75</span>",
+      note: "Q₂ é a mediana. Decis dividem em 10 partes (D₅ = mediana). Quartis e decis são percentis especiais."
+    },
+    scenario: "Considere o terceiro quartil (Q<sub>3</sub>) de uma distribuição.",
+    template: ["O Q<sub>3</sub> corresponde ao percentil ", {slot:0}, "."],
+    answers: ["75"],
+    bank: ["75", "25", "50", "90", "100", "33"],
+    hint: "Quartis dividem em 4 partes: 25%, 50%, 75%. Q₃ = 75% dos dados estão abaixo dele."
+  },
+
+  {
+    title: "Fase 14 — Cálculo do IQR",
+    desc: "Calcule a amplitude interquartil.",
+    theory: {
+      tag: "Posição",
+      title: "Intervalo interquartil (IQR)",
+      text: "Dispersão dos <strong>50% centrais</strong> da distribuição. Robusto a outliers, base do boxplot.",
+      formula: "IQR = Q<span class='var-sub'>3</span> − Q<span class='var-sub'>1</span>",
+      note: "O IQR é menos sensível a valores extremos que a amplitude total. Usado também para detectar outliers."
+    },
+    scenario: "Em uma distribuição, Q<sub>1</sub> = 12 e Q<sub>3</sub> = 28.",
+    template: ["O IQR é igual a ", {slot:0}, "."],
+    answers: ["16"],
+    bank: ["16", "40", "20", "14", "8", "28"],
+    hint: "IQR = Q₃ − Q₁ = 28 − 12."
+  },
+
+  {
+    title: "Fase 15 — Detecção de outlier (regra do IQR)",
+    desc: "Calcule o limite superior para outliers no boxplot.",
+    theory: {
+      tag: "Posição",
+      title: "Regra de Tukey para outliers",
+      text: "Um valor é considerado <strong>outlier</strong> se está abaixo de Q₁ − 1.5·IQR ou acima de Q₃ + 1.5·IQR. Valores acima de Q₃ + 3·IQR são <em>outliers extremos</em>.",
+      formula: "limite superior = Q<span class='var-sub'>3</span> + 1.5 · IQR",
+      note: "Esses são limites das 'cercas' (whiskers) do boxplot clássico de Tukey."
+    },
+    scenario: "Em um conjunto, Q<sub>1</sub> = 20 e Q<sub>3</sub> = 40. Então IQR = 20 e 1.5·IQR = 30.",
+    template: ["O limite superior para outliers é ", {slot:0}, "."],
+    answers: ["70"],
+    bank: ["70", "60", "50", "55", "65", "80"],
+    hint: "Limite superior = Q₃ + 1.5·IQR = 40 + 30."
+  },
+
+  {
+    title: "Fase 16 — Assimetria positiva",
+    desc: "Identifique o tipo de assimetria a partir da relação média × mediana.",
+    theory: {
+      tag: "Forma",
+      title: "Assimetria",
+      text: "Distribuição é <strong>simétrica</strong> quando média ≈ mediana ≈ moda. <strong>Positiva (à direita)</strong>: cauda longa para valores altos, média > mediana. <strong>Negativa (à esquerda)</strong>: cauda longa para valores baixos, média < mediana.",
+      formula: "γ<span class='var-sub'>1</span> > 0 ⇒ cauda à direita",
+      note: "Renda, tempo de vida, área de imóveis — geralmente têm assimetria positiva."
+    },
+    scenario: "Em uma distribuição, a <strong>média é maior que a mediana</strong>, e ambas são maiores que a moda.",
+    template: ["A distribuição apresenta assimetria ", {slot:0}, "."],
+    answers: ["positiva"],
+    bank: ["positiva", "negativa", "simétrica", "nula", "neutra", "leptocúrtica"],
+    hint: "Quando média > mediana, a média é puxada por valores altos na cauda direita."
+  },
+
+  {
+    title: "Fase 17 — Tipos de curtose",
+    desc: "Identifique distribuição com caudas pesadas.",
+    theory: {
+      tag: "Forma",
+      title: "Curtose",
+      text: "<strong>Peso das caudas</strong> em relação à normal: <em>leptocúrtica</em> (caudas pesadas, pico alto, γ₂ > 3), <em>mesocúrtica</em> (γ₂ = 3, como a normal), <em>platicúrtica</em> (caudas leves, pico baixo, γ₂ < 3).",
+      formula: "γ<span class='var-sub'>2</span> = E[(X − µ)⁴] / σ⁴",
+      note: "Distribuições leptocúrticas têm mais outliers que a normal. Indicador de risco em finanças."
+    },
+    scenario: "Uma distribuição com <strong>pico alto e caudas mais pesadas</strong> que a normal (maior frequência de valores extremos).",
+    template: ["Essa distribuição é classificada como ", {slot:0}, "."],
+    answers: ["leptocúrtica"],
+    bank: ["leptocúrtica", "platicúrtica", "mesocúrtica", "assimétrica", "simétrica", "bimodal"],
+    hint: "Lépto vem do grego 'lepto' (estreito) — pico fino e estreito, caudas pesadas."
+  },
+
+  // -------------------- BLOCO 5: VISUALIZAÇÃO --------------------
+  {
+    title: "Fase 18 — Gráfico para distribuição contínua",
+    desc: "Escolha o gráfico mais adequado.",
+    theory: {
+      tag: "Visualização",
+      title: "Histograma",
+      text: "Para visualizar a <strong>distribuição de uma única variável quantitativa contínua</strong>, o histograma divide os valores em intervalos (classes) e mostra a frequência em cada um.",
+      formula: "altura barra<span class='var-sub'>k</span> = nº observações em b<span class='var-sub'>k</span>",
+      note: "Para discretas use gráfico de barras. Para nominais com poucas categorias, barras ou (cuidadosamente) pizza."
+    },
+    scenario: "Você quer entender a <strong>distribuição das idades</strong> dos participantes de um estudo (variável quantitativa contínua).",
+    template: ["O gráfico mais adequado é o ", {slot:0}, "."],
+    answers: ["histograma"],
+    bank: ["histograma", "boxplot", "barras", "pizza", "dispersão", "linha"],
+    hint: "Para distribuição de UMA variável contínua, o histograma é o padrão."
+  },
+
+  {
+    title: "Fase 19 — Leitura de boxplot",
+    desc: "Identifique o que a linha central representa.",
+    theory: {
+      tag: "Visualização",
+      title: "Anatomia do boxplot",
+      text: "<strong>Caixa</strong>: de Q₁ a Q₃ (IQR). <strong>Linha dentro da caixa</strong>: mediana (Q₂). <strong>Bigodes</strong>: até os valores extremos não-outliers (até 1.5·IQR). <strong>Pontos</strong>: outliers.",
+      formula: "Q<span class='var-sub'>1</span> | Md | Q<span class='var-sub'>3</span> + outliers",
+      note: "A média NÃO aparece no boxplot tradicional — apenas a mediana e quartis."
+    },
+    scenario: "No boxplot clássico (Tukey), a <strong>linha horizontal dentro da caixa</strong> indica uma medida central.",
+    template: ["Essa linha representa a ", {slot:0}, "."],
+    answers: ["mediana"],
+    bank: ["mediana", "média", "moda", "Q1", "Q3", "máximo"],
+    hint: "O boxplot é construído sobre os 5 números de Tukey — a linha do meio é a mediana."
+  },
+
+  // -------------------- BOSS FINAL --------------------
+  {
+    title: "Fase 20 — Análise descritiva completa",
+    desc: "Para um cenário realista, escolha o tipo de variável, a medida de centro robusta, a medida de dispersão robusta e o gráfico mais informativo.",
+    theory: {
+      tag: "Workflow",
+      title: "Fluxo de análise exploratória",
+      text: "<strong>(1)</strong> classificar a variável, <strong>(2)</strong> escolher medida de centro adequada, <strong>(3)</strong> escolher medida de dispersão adequada, <strong>(4)</strong> escolher gráfico para visualização inicial.",
+      formula: "tipo → centro → dispersão → gráfico",
+      note: "Em distribuições assimétricas com possíveis outliers (renda, tempo de espera, área), prefira sempre medidas ROBUSTAS."
+    },
+    scenario: "Você analisa o <strong>salário mensal</strong> de funcionários, sabendo que há alguns executivos ganhando muito mais (cauda à direita, fortes outliers).",
+    template: [
+      "O salário é uma variável quantitativa ",
+      {slot:0},
+      ".\n\nMedida de centro mais adequada: ",
+      {slot:1},
+      ".\nMedida de dispersão mais adequada: ",
+      {slot:2},
+      ".\nGráfico mais informativo (comparações ou outliers): ",
+      {slot:3},
+      "."
+    ],
+    answers: ["contínua", "mediana", "IQR", "boxplot"],
+    bank: [
+      "contínua", "discreta", "nominal", "ordinal",
+      "mediana", "média", "moda",
+      "IQR", "desvio padrão", "amplitude",
+      "boxplot", "histograma", "barras", "pizza"
+    ],
+    hint: "Salário é contínuo. Com outliers, robustos: mediana + IQR. Para comparar grupos e ver outliers: boxplot."
+  }
+];
+
+// =====================================================================
+// ENGINE
+// =====================================================================
+function rng(seed) { let s = seed; return () => { s = (s*9301+49297)%233280; return s/233280; }; }
+
+const estado = {
+  fase: 0, pontos: 0, vidas: 3, tentativas: 0,
+  dicasUsadas: 0, errosTotais: 0, hintUsadaNaFase: false,
+  slotsFilled: []
+};
+
+function trocarTela(id) {
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function iniciarJogo() {
+  Object.assign(estado, {fase:0, pontos:0, vidas:3, tentativas:0, dicasUsadas:0, errosTotais:0});
+  document.getElementById('hud').style.display = 'flex';
+  trocarTela('screen-game');
+  carregarFase();
+}
+function reiniciarJogo() { iniciarJogo(); }
+
+function carregarFase() {
+  const f = FASES[estado.fase];
+  estado.slotsFilled = new Array(f.answers.length).fill(null);
+  estado.tentativas = 0;
+  estado.hintUsadaNaFase = false;
+
+  document.getElementById('hud-level').textContent = estado.fase + 1;
+  document.getElementById('hud-total').textContent = FASES.length;
+  document.getElementById('hud-score').textContent = estado.pontos;
+  document.getElementById('hud-lives').textContent = "♥".repeat(estado.vidas) + "♡".repeat(3 - estado.vidas);
+  document.getElementById('progress-fill').style.width = ((estado.fase) / FASES.length * 100) + '%';
+
+  document.getElementById('level-title').textContent = f.title;
+  document.getElementById('level-desc').textContent = f.desc;
+
+  document.getElementById('theory-tag').textContent   = f.theory.tag;
+  document.getElementById('theory-title').textContent = f.theory.title;
+  document.getElementById('theory-text').innerHTML    = f.theory.text;
+  document.getElementById('theory-formula').innerHTML = f.theory.formula;
+  document.getElementById('theory-note').textContent  = f.theory.note;
+  document.getElementById('scenario-content').innerHTML = f.scenario;
+
+  renderTemplate();
+  renderBank();
+
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('btn-check').style.display = '';
+  document.getElementById('btn-next').style.display = 'none';
+}
+
+function renderTemplate() {
+  const f = FASES[estado.fase];
+  const cont = document.getElementById('code-template');
+  cont.innerHTML = '';
+  f.template.forEach(piece => {
+    if (typeof piece === 'string') {
+      const span = document.createElement('span');
+      span.textContent = piece;
+      cont.appendChild(span);
+    } else {
+      const slot = document.createElement('span');
+      slot.className = 'slot';
+      slot.dataset.slotIdx = piece.slot;
+      slot.textContent = '_______';
+      if (estado.slotsFilled[piece.slot]) {
+        slot.classList.add('filled');
+        slot.textContent = estado.slotsFilled[piece.slot];
+      }
+      slot.addEventListener('dragover', e => { e.preventDefault(); slot.classList.add('over'); });
+      slot.addEventListener('dragleave', () => slot.classList.remove('over'));
+      slot.addEventListener('drop', e => {
+        e.preventDefault();
+        slot.classList.remove('over');
+        const val = e.dataTransfer.getData('text/plain');
+        if (!val) return;
+        estado.slotsFilled[piece.slot] = val;
+        renderTemplate(); renderBank();
+      });
+      slot.addEventListener('click', () => {
+        if (estado.slotsFilled[piece.slot]) {
+          estado.slotsFilled[piece.slot] = null;
+          renderTemplate(); renderBank();
+        }
+      });
+      cont.appendChild(slot);
+    }
+  });
+}
+
+function renderBank() {
+  const f = FASES[estado.fase];
+  const bank = document.getElementById('block-bank');
+  bank.innerHTML = '';
+  const usados = {};
+  estado.slotsFilled.forEach(v => { if (v) usados[v] = (usados[v]||0) + 1; });
+  const embaralhado = f.bank.slice();
+  const r = rng(estado.fase * 37 + 1);
+  for (let i = embaralhado.length-1; i>0; i--) {
+    const j = Math.floor(r()*(i+1));
+    [embaralhado[i], embaralhado[j]] = [embaralhado[j], embaralhado[i]];
+  }
+  embaralhado.forEach(b => {
+    const el = document.createElement('div');
+    el.className = 'block';
+    if (usados[b]) el.classList.add('used');
+    el.textContent = b;
+    el.draggable = true;
+    el.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', b); el.classList.add('dragging'); });
+    el.addEventListener('dragend', () => el.classList.remove('dragging'));
+    bank.appendChild(el);
+  });
+}
+
+function verificar() {
+  const f = FASES[estado.fase];
+  if (estado.slotsFilled.some(v => v === null)) {
+    mostrarFeedback('error', 'Preencha todas as lacunas antes de verificar.', 'error');
+    return;
+  }
+  const errados = [];
+  f.answers.forEach((ans, i) => { if (estado.slotsFilled[i] !== ans) errados.push(i); });
+
+  document.querySelectorAll('.slot').forEach(s => {
+    const idx = parseInt(s.dataset.slotIdx);
+    s.classList.remove('correct','wrong');
+    if (errados.includes(idx)) s.classList.add('wrong');
+    else if (estado.slotsFilled[idx]) s.classList.add('correct');
+  });
+
+  if (errados.length === 0) {
+    let ganho = 100;
+    if (estado.tentativas === 1) ganho = 60;
+    else if (estado.tentativas >= 2) ganho = 30;
+    if (estado.hintUsadaNaFase) ganho = Math.max(10, ganho - 30);
+    estado.pontos += ganho;
+    document.getElementById('hud-score').textContent = estado.pontos;
+    mostrarFeedback('success',
+      `Acertou! +${ganho} pontos. ` + (estado.fase < FASES.length-1 ? 'Próxima fase liberada.' : 'Você terminou todas as fases.'),
+      'check_circle');
+    document.getElementById('btn-check').style.display = 'none';
+    document.getElementById('btn-next').style.display = '';
+    document.getElementById('progress-fill').style.width = ((estado.fase+1) / FASES.length * 100) + '%';
+    confetti();
+  } else {
+    estado.tentativas++;
+    estado.errosTotais++;
+    estado.vidas--;
+    document.getElementById('hud-lives').textContent = "♥".repeat(Math.max(0,estado.vidas)) + "♡".repeat(3-Math.max(0,estado.vidas));
+    const dirPanel = document.querySelectorAll('.panel-game')[1];
+    if (dirPanel) { dirPanel.classList.add('shake'); setTimeout(()=>dirPanel.classList.remove('shake'), 400); }
+    if (estado.vidas <= 0) {
+      mostrarFeedback('error', `Sem vidas. Resposta correta: ${f.answers.join(', ')}. Avançando...`, 'error');
+      document.getElementById('btn-check').style.display = 'none';
+      document.getElementById('btn-next').style.display = '';
+      estado.vidas = 1;
+    } else {
+      mostrarFeedback('error', `${errados.length} lacuna(s) incorreta(s). Tente de novo.`, 'cancel');
+    }
+  }
+}
+
+function mostrarFeedback(tipo, msg, icone) {
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback show ' + tipo;
+  document.getElementById('feedback-icon').textContent = icone || 'info';
+  document.getElementById('feedback-msg').textContent = msg;
+}
+
+function usarDica() {
+  if (estado.hintUsadaNaFase) { mostrarFeedback('hint', 'Você já usou a dica desta fase.', 'lightbulb'); return; }
+  estado.hintUsadaNaFase = true;
+  estado.dicasUsadas++;
+  estado.pontos = Math.max(0, estado.pontos - 30);
+  document.getElementById('hud-score').textContent = estado.pontos;
+  mostrarFeedback('hint', FASES[estado.fase].hint, 'lightbulb');
+}
+
+function reiniciarFase() {
+  estado.slotsFilled = new Array(FASES[estado.fase].answers.length).fill(null);
+  renderTemplate(); renderBank();
+  document.getElementById('feedback').className = 'feedback';
+}
+
+function proximaFase() {
+  estado.fase++;
+  if (estado.fase >= FASES.length) mostrarFim();
+  else carregarFase();
+}
+
+function mostrarFim() {
+  document.getElementById('hud').style.display = 'none';
+  document.getElementById('end-score').textContent = estado.pontos;
+  document.getElementById('end-level').textContent = FASES.length;
+  document.getElementById('end-hints').textContent = estado.dicasUsadas;
+  document.getElementById('end-errors').textContent = estado.errosTotais;
+  const maxPts = FASES.length * 100;
+  const pct = estado.pontos / maxPts;
+  let stars = '⭐', titulo = 'Bom começo';
+  let msg = 'Você completou todas as fases. Que tal jogar de novo para melhorar a pontuação?';
+  if (pct >= 0.85) { stars = '⭐⭐⭐'; titulo = 'Mestre dos fundamentos'; msg = 'Pontuação excelente. Tipos de variável, medidas, gráficos — tudo no ponto.'; }
+  else if (pct >= 0.6) { stars = '⭐⭐'; titulo = 'Muito bem'; msg = 'Você foi bem. Revise as fases em que errou para fechar os conceitos.'; }
+  document.getElementById('end-title').textContent = titulo;
+  document.getElementById('end-msg').textContent = msg;
+  document.getElementById('end-stars').textContent = stars;
+  trocarTela('screen-end');
+  confetti();
+}
+
+function confetti() {
+  const c = document.getElementById('confetti');
+  c.style.display = 'block';
+  c.width = window.innerWidth; c.height = window.innerHeight;
+  const ctx = c.getContext('2d');
+  const peças = [];
+  const cores = ['#1976d2','#c2185b','#2e7d32','#ed6c02','#7b1fa2'];
+  for (let i=0; i<70; i++) {
+    peças.push({ x: Math.random()*c.width, y: -20 - Math.random()*200,
+      vx: (Math.random()-0.5)*3, vy: 2 + Math.random()*3,
+      cor: cores[Math.floor(Math.random()*cores.length)],
+      size: 6 + Math.random()*8, rot: Math.random()*Math.PI*2,
+      vr: (Math.random()-0.5)*0.3 });
+  }
+  let frames = 0;
+  function animar() {
+    ctx.clearRect(0,0,c.width,c.height);
+    peças.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.cor; ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+      ctx.restore();
+    });
+    frames++;
+    if (frames < 140) requestAnimationFrame(animar);
+    else { c.style.display = 'none'; ctx.clearRect(0,0,c.width,c.height); }
+  }
+  animar();
+}
+</script>
+</body>
+</html>

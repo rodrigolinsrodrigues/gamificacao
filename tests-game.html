@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>tests Quest · IDEB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500;700&family=Source+Serif+Pro:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary:        #1976d2;
+    --primary-dark:   #1565c0;
+    --primary-light:  #42a5f5;
+    --theory:         #e65100;        /* deep orange — testes de hipótese */
+    --theory-soft:    #fff3e0;
+    --error:          #d32f2f;
+    --warning:        #ed6c02;
+    --success:        #2e7d32;
+    --bg:             #f5f5f5;
+    --paper:          #ffffff;
+    --surface-2:      #fafafa;
+    --divider:        rgba(0,0,0,0.12);
+    --text-primary:   rgba(0,0,0,0.87);
+    --text-secondary: rgba(0,0,0,0.6);
+    --on-primary:     #ffffff;
+    --e1: 0 2px 1px -1px rgba(0,0,0,0.2), 0 1px 1px 0 rgba(0,0,0,0.14), 0 1px 3px 0 rgba(0,0,0,0.12);
+    --e2: 0 3px 1px -2px rgba(0,0,0,0.2), 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12);
+    --e4: 0 2px 4px -1px rgba(0,0,0,0.2), 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12);
+  }
+  body {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg); color: var(--text-primary);
+    min-height: 100vh; -webkit-font-smoothing: antialiased; line-height: 1.5;
+  }
+
+  .appbar {
+    background: var(--primary); color: var(--on-primary);
+    box-shadow: var(--e4); position: sticky; top: 0; z-index: 100;
+    padding: 0 24px; display: flex; align-items: center; justify-content: space-between;
+    min-height: 64px;
+  }
+  .appbar-brand { display: inline-flex; align-items: center; margin-right: 16px; text-decoration: none; }
+  .appbar-brand img { height: 36px; display: block; border-radius: 8px; background: white; padding: 2px; transition: transform 0.2s; }
+  .appbar-brand:hover img { transform: scale(1.04); }
+  .appbar-left { display: flex; align-items: center; }
+  .appbar-title { display: flex; align-items: center; gap: 12px; font-size: 20px; font-weight: 500; letter-spacing: 0.0075em; }
+  .appbar-title .material-icons { font-size: 28px; }
+  .appbar-title .sub { font-size: 12px; font-weight: 400; opacity: 0.85; margin-left: 8px; }
+  .hud { display: flex; gap: 8px; align-items: center; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.16); color: var(--on-primary); padding: 6px 12px; border-radius: 16px; font-size: 13px; font-weight: 500; }
+  .chip .material-icons { font-size: 18px; }
+  .chip-progress { background: rgba(255,255,255,0.16); width: 140px; height: 4px; border-radius: 2px; overflow: hidden; margin-left: 8px; }
+  .chip-progress > div { height: 100%; background: var(--on-primary); width: 0%; transition: width 0.4s; }
+
+  .screen { display: none; padding: 32px 24px 64px; }
+  .screen.active { display: block; }
+
+  #screen-start {
+    text-align: center; padding-top: 80px; min-height: 85vh;
+    display: none; flex-direction: column; align-items: center;
+  }
+  #screen-start.active { display: flex; }
+  #screen-start h1 { font-size: 60px; font-weight: 300; letter-spacing: -0.5px; color: var(--text-primary); margin-bottom: 16px; }
+  #screen-start h1 .accent { color: var(--primary); font-weight: 500; }
+  #screen-start .lead { font-size: 16px; color: var(--text-secondary); max-width: 660px; margin: 0 auto 8px; line-height: 1.6; }
+  #screen-start .lead code { background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px; font-family: 'Roboto Mono', monospace; font-size: 13px; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px; border: none; cursor: pointer; font-family: inherit;
+    font-weight: 500; font-size: 14px; letter-spacing: 0.02857em;
+    text-transform: uppercase; padding: 8px 22px; min-height: 36px;
+    border-radius: 4px; transition: all 0.2s;
+    position: relative; overflow: hidden; user-select: none;
+  }
+  .btn .material-icons { font-size: 18px; }
+  .btn-contained { background: var(--primary); color: var(--on-primary); box-shadow: var(--e2); }
+  .btn-contained:hover { background: var(--primary-dark); box-shadow: var(--e4); }
+  .btn-text { background: transparent; color: var(--primary); padding: 6px 16px; }
+  .btn-text:hover { background: rgba(25,118,210,0.08); }
+  .btn-fab { margin-top: 40px; padding: 14px 40px; font-size: 15px; min-height: 48px; border-radius: 8px; }
+  .btn::after {
+    content: ''; position: absolute; top: 50%; left: 50%;
+    width: 0; height: 0; border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease;
+    pointer-events: none;
+  }
+  .btn-text::after { background: rgba(25,118,210,0.2); }
+  .btn:active::after { width: 220%; height: 220%; transition: 0s; }
+
+  .card { background: var(--paper); border-radius: 8px; box-shadow: var(--e1); padding: 24px; }
+  .card-feature { background: var(--paper); border-radius: 8px; box-shadow: var(--e1); padding: 28px; text-align: left; }
+  .feature-icon {
+    width: 48px; height: 48px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: rgba(230,81,0,0.12); color: var(--theory); margin-bottom: 16px;
+  }
+  .feature-icon .material-icons { font-size: 28px; }
+  .card-feature h3 { font-size: 18px; font-weight: 500; margin-bottom: 8px; color: var(--text-primary); }
+  .card-feature p { font-size: 14px; color: var(--text-secondary); line-height: 1.55; }
+  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 56px; max-width: 960px; width: 100%; }
+
+  .game-grid { display: grid; grid-template-columns: 1fr 1.05fr; gap: 24px; max-width: 1480px; margin: 0 auto; }
+  .panel-title {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 500; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-secondary); margin-bottom: 16px;
+  }
+  .panel-title .material-icons { font-size: 18px; color: var(--primary); }
+  .level-title { font-size: 22px; font-weight: 500; color: var(--text-primary); margin-bottom: 4px; }
+  .level-desc { color: var(--text-secondary); font-size: 14px; line-height: 1.55; margin-bottom: 20px; }
+
+  /* Theory card laranja escuro */
+  .theory-card {
+    background: var(--theory-soft);
+    border-left: 4px solid var(--theory);
+    border-radius: 4px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+  }
+  .theory-head {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--theory);
+    margin-bottom: 10px;
+  }
+  .theory-head .material-icons { font-size: 18px; }
+  .theory-title { font-size: 16px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px; }
+  .theory-text { font-size: 14px; color: var(--text-primary); line-height: 1.6; margin-bottom: 12px; }
+  .theory-text strong { color: var(--theory); font-weight: 500; }
+
+  .formula {
+    background: #fff;
+    border: 1px solid rgba(230,81,0,0.2);
+    border-radius: 4px;
+    padding: 14px 18px;
+    text-align: center;
+    font-family: 'Source Serif Pro', Georgia, serif;
+    font-size: 18px; font-style: italic;
+    color: var(--text-primary);
+    margin: 8px 0 12px;
+    letter-spacing: 0.5px;
+  }
+  .formula .var-sub { font-size: 11px; vertical-align: sub; font-style: normal; }
+  .formula .var-sup { font-size: 11px; vertical-align: super; font-style: normal; }
+
+  .theory-note {
+    font-size: 13px; color: var(--text-secondary);
+    line-height: 1.55;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(230,81,0,0.2);
+  }
+
+  .expected {
+    margin-top: 8px; padding: 12px 16px;
+    background: var(--surface-2); border-radius: 4px;
+    border-left: 3px solid var(--success);
+  }
+  .expected-title {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-secondary); font-weight: 600; margin-bottom: 6px;
+  }
+  .expected-content {
+    font-family: 'Roboto Mono', monospace; font-size: 12.5px;
+    color: var(--text-primary); white-space: pre-wrap;
+    line-height: 1.6;
+  }
+
+  .code-block {
+    background: #fafafa; color: #212121;
+    padding: 20px 22px; border-radius: 4px;
+    border: 1px solid var(--divider);
+    font-family: 'Roboto Mono', 'SF Mono', 'Monaco', monospace;
+    font-size: 14px; line-height: 2.0;
+    white-space: pre-wrap;
+    margin-bottom: 20px; min-height: 130px;
+  }
+  .slot {
+    display: inline-block; min-width: 96px;
+    padding: 3px 12px; margin: 0 3px;
+    background: #fff; border: 1.5px dashed #9e9e9e;
+    border-radius: 4px; color: #9e9e9e;
+    text-align: center; font-style: italic;
+    font-family: 'Roboto Mono', monospace;
+    vertical-align: middle; transition: all 0.15s;
+  }
+  .slot.over    { background: rgba(25,118,210,0.08); border-color: var(--primary); border-style: solid; }
+  .slot.filled  { background: rgba(25,118,210,0.08); border: 1.5px solid var(--primary); color: var(--primary-dark); font-style: normal; font-weight: 500; cursor: pointer; }
+  .slot.wrong   { background: rgba(211,47,47,0.08); border: 1.5px solid var(--error); color: var(--error); }
+  .slot.correct { background: rgba(46,125,50,0.08); border: 1.5px solid var(--success); color: var(--success); }
+
+  .bank-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); margin-bottom: 12px; font-weight: 500; }
+  .bank {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    min-height: 88px; padding: 16px;
+    background: var(--surface-2); border-radius: 4px; border: 1px solid var(--divider);
+  }
+  .block {
+    display: inline-flex; align-items: center; padding: 8px 14px;
+    background: var(--paper); color: var(--text-primary);
+    border: 1px solid var(--divider); border-radius: 16px;
+    font-family: 'Roboto Mono', monospace; font-size: 13px; font-weight: 500;
+    cursor: grab; user-select: none;
+    transition: all 0.15s; box-shadow: var(--e1);
+  }
+  .block:hover { background: var(--surface-2); box-shadow: var(--e2); transform: translateY(-1px); }
+  .block:active { cursor: grabbing; }
+  .block.dragging { opacity: 0.4; }
+  .block.used { display: none; }
+
+  .actions { display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; justify-content: flex-end; }
+
+  .feedback {
+    margin-top: 16px; padding: 12px 16px; border-radius: 4px;
+    font-size: 14px; line-height: 1.5;
+    border-left: 4px solid; display: none; align-items: flex-start; gap: 10px;
+  }
+  .feedback.show { display: flex; }
+  .feedback.success { background: #edf7ed; color: #1e4620; border-color: var(--success); }
+  .feedback.error   { background: #fdecea; color: #5f2120; border-color: var(--error); }
+  .feedback.hint    { background: #fff4e5; color: #663c00; border-color: var(--warning); }
+  .feedback .material-icons { font-size: 22px; }
+  .feedback.success .material-icons { color: var(--success); }
+  .feedback.error .material-icons   { color: var(--error); }
+  .feedback.hint .material-icons    { color: var(--warning); }
+
+  #screen-end { text-align: center; padding-top: 80px; min-height: 80vh; }
+  #screen-end h1 { font-size: 48px; font-weight: 300; color: var(--text-primary); margin-bottom: 12px; letter-spacing: -0.5px; }
+  #screen-end .end-sub { font-size: 16px; color: var(--text-secondary); max-width: 560px; margin: 0 auto; }
+  .final-score-card { background: var(--paper); border-radius: 8px; box-shadow: var(--e2); padding: 32px; margin: 32px auto; max-width: 480px; }
+  .final-score { font-size: 72px; font-weight: 300; color: var(--primary); margin: 8px 0; letter-spacing: -2px; }
+  .stars { font-size: 36px; margin: 8px 0 16px; letter-spacing: 10px; }
+  .final-stats { display: flex; justify-content: center; gap: 56px; flex-wrap: wrap; }
+  .final-stat .v { font-size: 28px; font-weight: 500; color: var(--text-primary); }
+  .final-stat .l { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .card, .panel-game { animation: fadeIn 0.3s ease; }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  .shake { animation: shake 0.35s; }
+  #confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 200; display: none; }
+
+  @media (max-width: 960px) {
+    .game-grid { grid-template-columns: 1fr; }
+    .features-grid { grid-template-columns: 1fr; }
+    .hud .chip-progress { display: none; }
+    #screen-start h1 { font-size: 40px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="appbar">
+  <div class="appbar-left">
+    <a href="index.html" class="appbar-brand" title="Voltar ao portal Evante">
+      <img src="Evante-01.jpg" alt="Evante" />
+    </a>
+    <div class="appbar-title">
+      <span class="material-icons">science</span>
+      tests Quest <span class="sub">· IDEB</span>
+    </div>
+  </div>
+  <div class="hud" id="hud" style="display:none;">
+    <div class="chip"><span class="material-icons">flag</span><span id="hud-level">1</span>/<span id="hud-total">20</span></div>
+    <div class="chip-progress"><div id="progress-fill"></div></div>
+    <div class="chip"><span class="material-icons">stars</span><span id="hud-score">0</span></div>
+    <div class="chip"><span class="material-icons">favorite</span><span id="hud-lives">3</span></div>
+  </div>
+</header>
+
+<section id="screen-start" class="screen active">
+  <h1>tests <span class="accent">Quest</span></h1>
+  <p class="lead">Aprenda <strong>testes de hipótese</strong> em R: comparação de médias, proporções, variâncias, independência e aderência.</p>
+  <p class="lead">20 fases progressivas: testes paramétricos (<code>t.test</code>, <code>aov</code>) e não-paramétricos (<code>wilcox.test</code>, <code>kruskal.test</code>), pressupostos e correções para múltiplos testes.</p>
+
+  <button class="btn btn-contained btn-fab" onclick="iniciarJogo()">
+    <span class="material-icons">play_arrow</span>Começar
+  </button>
+
+  <div class="features-grid">
+    <div class="card-feature">
+      <div class="feature-icon"><span class="material-icons">functions</span></div>
+      <h3>Hipóteses e estatísticas</h3>
+      <p>Cada fase explica H₀ vs H₁, a estatística do teste, e como interpretar o p-valor.</p>
+    </div>
+    <div class="card-feature">
+      <div class="feature-icon"><span class="material-icons">code</span></div>
+      <h3>Aplique em R</h3>
+      <p>Use <code>t.test</code>, <code>wilcox.test</code>, <code>aov</code>, <code>chisq.test</code>, <code>fisher.test</code>, <code>shapiro.test</code>.</p>
+    </div>
+    <div class="card-feature">
+      <div class="feature-icon"><span class="material-icons">rule</span></div>
+      <h3>Pressupostos</h3>
+      <p>Normalidade (Shapiro), homogeneidade (Bartlett, Levene), independência. Saber escolher o teste certo.</p>
+    </div>
+  </div>
+</section>
+
+<section id="screen-game" class="screen">
+  <div class="game-grid">
+    <div class="card panel-game">
+      <div class="panel-title"><span class="material-icons">menu_book</span>Conceito</div>
+      <div class="level-title" id="level-title">Fase 1</div>
+      <div class="level-desc" id="level-desc"></div>
+
+      <div class="theory-card">
+        <div class="theory-head"><span class="material-icons">functions</span><span id="theory-tag">Teoria</span></div>
+        <div class="theory-title" id="theory-title"></div>
+        <div class="theory-text" id="theory-text"></div>
+        <div class="formula" id="theory-formula"></div>
+        <div class="theory-note" id="theory-note"></div>
+      </div>
+
+      <div class="expected">
+        <div class="expected-title">Resultado esperado em R</div>
+        <div class="expected-content" id="expected-content"></div>
+      </div>
+    </div>
+
+    <div class="card panel-game">
+      <div class="panel-title"><span class="material-icons">terminal</span>Monte o código R</div>
+      <div class="code-block" id="code-template"></div>
+
+      <div class="bank-title">Blocos disponíveis · arraste para os slots</div>
+      <div class="bank" id="block-bank"></div>
+
+      <div class="feedback" id="feedback">
+        <span class="material-icons" id="feedback-icon">info</span>
+        <span id="feedback-msg"></span>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-text" onclick="usarDica()"><span class="material-icons">lightbulb</span>Dica · -30</button>
+        <button class="btn btn-text" onclick="reiniciarFase()"><span class="material-icons">refresh</span>Reiniciar</button>
+        <button class="btn btn-contained" id="btn-check" onclick="verificar()"><span class="material-icons">check_circle</span>Verificar</button>
+        <button class="btn btn-contained" id="btn-next" onclick="proximaFase()" style="display:none;">Próxima<span class="material-icons">arrow_forward</span></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="screen-end" class="screen">
+  <h1 id="end-title">Parabéns</h1>
+  <p class="end-sub" id="end-msg">Você completou todas as fases.</p>
+  <div class="final-score-card">
+    <div class="stars" id="end-stars">⭐⭐⭐</div>
+    <div class="final-score" id="end-score">0</div>
+    <div class="final-stats">
+      <div class="final-stat"><div class="v" id="end-level">20</div><div class="l">Fases</div></div>
+      <div class="final-stat"><div class="v" id="end-hints">0</div><div class="l">Dicas</div></div>
+      <div class="final-stat"><div class="v" id="end-errors">0</div><div class="l">Erros</div></div>
+    </div>
+  </div>
+  <button class="btn btn-contained btn-fab" onclick="reiniciarJogo()">
+    <span class="material-icons">replay</span>Jogar de novo
+  </button>
+</section>
+
+<canvas id="confetti"></canvas>
+
+<script>
+// =====================================================================
+// 20 FASES — Testes de hipótese
+// =====================================================================
+const FASES = [
+  // -------------------- BLOCO 1: UMA AMOSTRA --------------------
+  {
+    title: "Fase 1 — Teste t para uma amostra",
+    desc: "Teste se a média do IDEB é estatisticamente diferente de 5.0.",
+    theory: {
+      tag: "Uma amostra",
+      title: "t de Student (uma amostra)",
+      text: "Testa se a média de uma população é igual a um valor de referência <strong>µ<span class='var-sub'>0</span></strong>. Pressuposto: dados aproximadamente normais (ou n grande pelo TCL).",
+      formula: "t = (x̄ − µ<span class='var-sub'>0</span>) / (s / √n) ~ t<span class='var-sub'>n−1</span>",
+      note: "p-valor < 0.05 → rejeita H₀ (média DIFERE de µ₀). Argumento mu = µ₀ define o valor de referência."
+    },
+    expected: "One Sample t-test\n\ndata:  ideb$ideb\nt = 1.561, df = 239, p-value = 0.1199\nalternative hypothesis: true mean is not equal to 5\n95 percent confidence interval:\n 4.967 5.281\nsample estimates:\nmean of x \n   5.124",
+    template: [{slot:0}, "(ideb$ideb, mu = 5)"],
+    answers: ["t.test"],
+    bank: ["t.test", "wilcox.test", "z.test", "ttest", "test.t", "mean.test"],
+    hint: "A função do teste t é t.test() (com ponto)."
+  },
+
+  {
+    title: "Fase 2 — Wilcoxon (uma amostra, não-paramétrico)",
+    desc: "Versão não-paramétrica do teste anterior: testa se a MEDIANA do IDEB difere de 5.0.",
+    theory: {
+      tag: "Uma amostra",
+      title: "Wilcoxon signed-rank test",
+      text: "Alternativa <strong>não-paramétrica</strong> ao t.test, baseada em postos com sinal. Testa simetria da distribuição em torno de µ₀, sem exigir normalidade.",
+      formula: "W = Σ sign(x<span class='var-sub'>i</span> − µ<span class='var-sub'>0</span>) · rank|x<span class='var-sub'>i</span> − µ<span class='var-sub'>0</span>|",
+      note: "Use quando os dados não são normais e o n é pequeno. Em R, a MESMA função wilcox.test() faz uma amostra, duas amostras e pareado, dependendo dos argumentos."
+    },
+    expected: "Wilcoxon signed rank test with continuity correction\n\ndata:  ideb$ideb\nV = 15012, p-value = 0.1051\nalternative hypothesis: true location is not equal to 5",
+    template: [{slot:0}, "(ideb$ideb, mu = 5)"],
+    answers: ["wilcox.test"],
+    bank: ["wilcox.test", "t.test", "kruskal.test", "wilcoxon", "mann.test", "signed.rank"],
+    hint: "wilcox.test() (com ponto). O mesmo nome serve para uma amostra, duas independentes ou pareado."
+  },
+
+  {
+    title: "Fase 3 — Teste binomial para proporção",
+    desc: "De 240 escolas, 110 atingiram IDEB ≥ 5. Teste se a proporção difere de 50%.",
+    theory: {
+      tag: "Proporção",
+      title: "Teste binomial exato",
+      text: "Teste <strong>exato</strong> (não aproximado) para uma proporção. Calcula a probabilidade exata sob H₀ usando a distribuição binomial.",
+      formula: "X ~ Bin(n, p<span class='var-sub'>0</span>) sob H<span class='var-sub'>0</span>",
+      note: "Para amostras grandes, prop.test() (aproximação normal com χ²) é equivalente e mais rápido. Argumentos: número de sucessos x, tentativas n, probabilidade p."
+    },
+    expected: "Exact binomial test\n\ndata:  110 and 240\nnumber of successes = 110, number of trials = 240, p-value = 0.2310\nalternative hypothesis: true probability is not equal to 0.5\n95 percent confidence interval:\n 0.394 0.521\nsample estimates:\nprobability of success \n             0.4583",
+    template: [{slot:0}, "(x = 110, n = 240, p = 0.5)"],
+    answers: ["binom.test"],
+    bank: ["binom.test", "prop.test", "fisher.test", "chisq.test", "binomial", "z.test"],
+    hint: "binom.test() é o teste binomial EXATO. prop.test() é a versão aproximada (χ²)."
+  },
+
+  {
+    title: "Fase 4 — Shapiro-Wilk (normalidade)",
+    desc: "Verifique se a distribuição do IDEB é aproximadamente normal.",
+    theory: {
+      tag: "Pressuposto",
+      title: "Teste de Shapiro-Wilk",
+      text: "Testa H<span class='var-sub'>0</span>: <strong>dados seguem distribuição normal</strong>. Recomendado para n entre 3 e 5000. Considerado o teste mais potente para detectar não-normalidade.",
+      formula: "W = (Σ a<span class='var-sub'>i</span> x<span class='var-sub'>(i)</span>)² / Σ(x<span class='var-sub'>i</span> − x̄)²",
+      note: "p-valor < 0.05 → rejeita normalidade. Em amostras MUITO grandes, rejeita por desvios mínimos (use junto com Q-Q plot)."
+    },
+    expected: "Shapiro-Wilk normality test\n\ndata:  ideb$ideb\nW = 0.9912, p-value = 0.158",
+    template: [{slot:0}, "(ideb$ideb)"],
+    answers: ["shapiro.test"],
+    bank: ["shapiro.test", "ks.test", "ad.test", "lillie.test", "jarque.test", "normality"],
+    hint: "shapiro.test() é o padrão. Para amostras > 5000, considere ks.test() ou nortest::ad.test()."
+  },
+
+  // -------------------- BLOCO 2: DUAS AMOSTRAS INDEPENDENTES --------------------
+  {
+    title: "Fase 5 — Teste t para duas amostras independentes",
+    desc: "Compare o IDEB médio entre as redes Privada e Estadual.",
+    theory: {
+      tag: "Duas amostras",
+      title: "t de Student (duas amostras independentes)",
+      text: "Compara médias de <strong>dois grupos independentes</strong>. Padrão em R: variâncias DESIGUAIS (Welch). Para Student clássico, use var.equal = TRUE.",
+      formula: "t = (x̄<span class='var-sub'>1</span> − x̄<span class='var-sub'>2</span>) / √(s<span class='var-sub'>1</span>²/n<span class='var-sub'>1</span> + s<span class='var-sub'>2</span>²/n<span class='var-sub'>2</span>)",
+      note: "Sintaxe de fórmula: t.test(y ~ grupo, data = df) compara y entre os 2 níveis do grupo."
+    },
+    expected: "Welch Two Sample t-test\n\ndata:  ideb by rede\nt = -10.27, df = 96.5, p-value < 2.2e-16\nalternative hypothesis: true difference in means is not equal to 0\n95 percent confidence interval:\n -2.078 -1.406\nsample estimates:\n mean Estadual  mean Privada \n         4.81          6.55",
+    template: ["sub <- subset(ideb, rede %in% c(\"Privada\", \"Estadual\"))\nt.test(ideb ", {slot:0}, " rede, data = sub)"],
+    answers: ["~"],
+    bank: ["~", "+", ",", "by", "|", ":"],
+    hint: "Em fórmulas de R, o til ~ separa resposta de preditor. 'y ~ x' lê-se 'y em função de x'."
+  },
+
+  {
+    title: "Fase 6 — t de Student clássico (variâncias iguais)",
+    desc: "Use a versão clássica do teste t, assumindo variâncias iguais entre os grupos.",
+    theory: {
+      tag: "Duas amostras",
+      title: "var.equal = TRUE",
+      text: "Quando podemos assumir <strong>variâncias iguais</strong> nas duas populações (homocedasticidade), usamos uma variância combinada (pooled) — versão original do t de Student.",
+      formula: "s<span class='var-sub'>p</span>² = ((n<span class='var-sub'>1</span>−1)·s<span class='var-sub'>1</span>² + (n<span class='var-sub'>2</span>−1)·s<span class='var-sub'>2</span>²) / (n<span class='var-sub'>1</span> + n<span class='var-sub'>2</span> − 2)",
+      note: "Padrão de R é var.equal = FALSE (Welch). Sempre teste com var.test() ANTES de assumir variâncias iguais."
+    },
+    expected: "Two Sample t-test (clásico)\n\ndata:  ideb by rede\nt = -10.18, df = 106, p-value < 2.2e-16",
+    template: ["t.test(ideb ~ rede, data = sub,\n       ", {slot:0}, " = TRUE)"],
+    answers: ["var.equal"],
+    bank: ["var.equal", "paired", "alternative", "mu", "conf.level", "pooled"],
+    hint: "var.equal = TRUE força o teste t clássico (pooled). FALSE (padrão) é Welch."
+  },
+
+  {
+    title: "Fase 7 — Teste F para igualdade de variâncias",
+    desc: "Verifique se as variâncias do IDEB entre as redes Privada e Estadual são iguais.",
+    theory: {
+      tag: "Pressuposto",
+      title: "Teste F (var.test)",
+      text: "Testa H<span class='var-sub'>0</span>: σ<span class='var-sub'>1</span>² = σ<span class='var-sub'>2</span>². Sensível a desvios da normalidade — para dados não normais use levene.test ou bartlett.test.",
+      formula: "F = s<span class='var-sub'>1</span>² / s<span class='var-sub'>2</span>² ~ F<span class='var-sub'>n<span class='var-sub'>1</span>−1, n<span class='var-sub'>2</span>−1</span>",
+      note: "p > 0.05 → não rejeitamos igualdade → podemos usar var.equal = TRUE no t.test."
+    },
+    expected: "F test to compare two variances\n\ndata:  ideb by rede\nF = 1.121, num df = 57, denom df = 49, p-value = 0.6810\nalternative hypothesis: true ratio of variances is not equal to 1",
+    template: [{slot:0}, "(ideb ~ rede, data = sub)"],
+    answers: ["var.test"],
+    bank: ["var.test", "bartlett.test", "leveneTest", "F.test", "fligner.test", "ansari.test"],
+    hint: "var.test() é o teste F básico. Para mais de 2 grupos, bartlett.test() ou car::leveneTest()."
+  },
+
+  {
+    title: "Fase 8 — Mann-Whitney (duas amostras independentes)",
+    desc: "Versão não-paramétrica do t para duas amostras independentes.",
+    theory: {
+      tag: "Duas amostras",
+      title: "Mann-Whitney / Wilcoxon rank-sum",
+      text: "Compara distribuições de dois grupos usando POSTOS. Equivalente ao Wilcoxon rank-sum. Não exige normalidade — bom para dados ordinais ou pequenas amostras.",
+      formula: "U = R<span class='var-sub'>1</span> − n<span class='var-sub'>1</span>(n<span class='var-sub'>1</span> + 1)/2",
+      note: "No R, wilcox.test() com dois vetores ou fórmula y ~ grupo. Detecta diferença de localização (não necessariamente de média)."
+    },
+    expected: "Wilcoxon rank sum test with continuity correction\n\ndata:  ideb by rede\nW = 240, p-value < 2.2e-16",
+    template: [{slot:0}, "(ideb ~ rede, data = sub)"],
+    answers: ["wilcox.test"],
+    bank: ["wilcox.test", "kruskal.test", "t.test", "mann.test", "u.test", "rank.test"],
+    hint: "A mesma wilcox.test() funciona para 1 amostra, 2 independentes (Mann-Whitney) ou pareado — depende dos argumentos."
+  },
+
+  // -------------------- BLOCO 3: PAREADO E PRESSUPOSTOS --------------------
+  {
+    title: "Fase 9 — Teste t pareado",
+    desc: "Compare IDEB de 2019 vs 2021 nas MESMAS escolas (medidas pareadas).",
+    theory: {
+      tag: "Pareado",
+      title: "t pareado",
+      text: "Quando temos <strong>medidas repetidas</strong> nas mesmas unidades (antes/depois, par de gêmeos, mesma escola em anos diferentes), usamos o teste em DIFERENÇAS individuais.",
+      formula: "t = d̄ / (s<span class='var-sub'>d</span> / √n) ~ t<span class='var-sub'>n−1</span>",
+      note: "Ative com paired = TRUE. Reduz drasticamente a variabilidade — teste mais POTENTE quando há pareamento natural."
+    },
+    expected: "Paired t-test\n\ndata:  d2021 and d2019\nt = 4.21, df = 39, p-value = 1.4e-04\nalternative hypothesis: true mean difference is not equal to 0",
+    template: ["t.test(d2021, d2019, ", {slot:0}, " = TRUE)"],
+    answers: ["paired"],
+    bank: ["paired", "matched", "repeated", "var.equal", "alternative", "linked"],
+    hint: "Argumento paired = TRUE liga o teste em modo pareado. Os dois vetores devem ter MESMO comprimento."
+  },
+
+  {
+    title: "Fase 10 — Wilcoxon pareado (signed rank)",
+    desc: "Versão não-paramétrica do teste t pareado.",
+    theory: {
+      tag: "Pareado",
+      title: "Wilcoxon pareado",
+      text: "Análogo do Wilcoxon signed-rank para <strong>diferenças pareadas</strong>. Não exige normalidade das diferenças, só simetria.",
+      formula: "W = Σ sign(d<span class='var-sub'>i</span>) · rank|d<span class='var-sub'>i</span>|",
+      note: "Mesma função wilcox.test() — basta adicionar paired = TRUE."
+    },
+    expected: "Wilcoxon signed rank test with continuity correction\n\ndata:  d2021 and d2019\nV = 615, p-value = 1.2e-03",
+    template: ["wilcox.test(d2021, d2019, ", {slot:0}, " = TRUE)"],
+    answers: ["paired"],
+    bank: ["paired", "alternative", "mu", "exact", "conf.int", "correct"],
+    hint: "wilcox.test() também aceita paired = TRUE para virar a versão pareada do teste."
+  },
+
+  {
+    title: "Fase 11 — Bartlett (homogeneidade de variâncias, 3+ grupos)",
+    desc: "Teste se as variâncias do IDEB são iguais entre as 4 redes.",
+    theory: {
+      tag: "Pressuposto",
+      title: "Bartlett vs Levene",
+      text: "Para K > 2 grupos, generaliza o teste F. <strong>Bartlett</strong> é sensível à não-normalidade — quando a normalidade é duvidosa, prefira <strong>Levene</strong> (car::leveneTest).",
+      formula: "χ² = (N−K)·ln(s<span class='var-sub'>p</span>²) − Σ(n<span class='var-sub'>i</span>−1)·ln(s<span class='var-sub'>i</span>²) / c",
+      note: "p > 0.05 → não rejeitamos homogeneidade → ANOVA é aplicável."
+    },
+    expected: "Bartlett test of homogeneity of variances\n\ndata:  ideb by rede\nBartlett's K-squared = 7.42, df = 3, p-value = 0.0596",
+    template: [{slot:0}, "(ideb ~ rede, data = ideb)"],
+    answers: ["bartlett.test"],
+    bank: ["bartlett.test", "var.test", "leveneTest", "fligner.test", "ansari.test", "ks.test"],
+    hint: "bartlett.test() funciona para K > 2 grupos. Para alternativa robusta a não-normalidade, use car::leveneTest."
+  },
+
+  // -------------------- BLOCO 4: ANOVA E MÚLTIPLOS GRUPOS --------------------
+  {
+    title: "Fase 12 — ANOVA de um fator",
+    desc: "Compare o IDEB médio entre as 4 redes simultaneamente.",
+    theory: {
+      tag: "ANOVA",
+      title: "Análise de Variância (1 fator)",
+      text: "Generaliza o teste t para <strong>K > 2 grupos</strong>. Testa H<span class='var-sub'>0</span>: µ<span class='var-sub'>1</span> = µ<span class='var-sub'>2</span> = ... = µ<span class='var-sub'>K</span>. Compara variância ENTRE grupos com variância DENTRO dos grupos.",
+      formula: "F = (SQB / (K−1)) / (SQW / (N−K)) ~ F<span class='var-sub'>K−1, N−K</span>",
+      note: "Pressupostos: normalidade dos resíduos, homogeneidade de variâncias, independência. Se rejeita H₀, faça pós-hoc para identificar QUAIS médias diferem."
+    },
+    expected: "            Df Sum Sq Mean Sq F value   Pr(>F)\nrede         3  211.4   70.46    72.4  < 2e-16 ***\nResiduals  236  229.6    0.97",
+    template: ["modelo <- ", {slot:0}, "(ideb ~ rede, data = ideb)\nsummary(modelo)"],
+    answers: ["aov"],
+    bank: ["aov", "anova", "lm", "manova", "Anova", "kruskal.test"],
+    hint: "aov() ajusta o modelo. summary() ou anova() mostram a tabela. anova() (minúsculo) é diferente: serve para COMPARAR modelos."
+  },
+
+  {
+    title: "Fase 13 — Pós-hoc de Tukey",
+    desc: "Após ANOVA significativa, identifique quais redes diferem entre si.",
+    theory: {
+      tag: "ANOVA",
+      title: "Tukey HSD (Honestly Significant Difference)",
+      text: "Compara TODOS os pares de médias mantendo o erro tipo I controlado pelo número de comparações. Mais conservador que t individuais.",
+      formula: "q = (x̄<span class='var-sub'>i</span> − x̄<span class='var-sub'>j</span>) / √(MSE/n)",
+      note: "TukeyHSD() recebe direto o objeto aov e devolve diferenças, IC ajustado e p-valores corrigidos para cada par."
+    },
+    expected: "  Tukey multiple comparisons of means\n    95% family-wise confidence level\n\n                     diff   lwr   upr  p adj\nFederal-Estadual    1.610 0.929 2.291 0.0000\nMunicipal-Estadual -0.230-0.611 0.151 0.4012\nPrivada-Estadual    1.740 1.327 2.153 0.0000\n...",
+    template: [{slot:0}, "(modelo)"],
+    answers: ["TukeyHSD"],
+    bank: ["TukeyHSD", "pairwise.t.test", "duncan.test", "scheffe", "LSD.test", "tukey"],
+    hint: "TukeyHSD() (T e HSD em maiúsculo). Alternativa: pairwise.t.test() com correção de Bonferroni."
+  },
+
+  {
+    title: "Fase 14 — Kruskal-Wallis (não-paramétrico para K grupos)",
+    desc: "Alternativa não-paramétrica à ANOVA: compara K grupos sem assumir normalidade.",
+    theory: {
+      tag: "ANOVA",
+      title: "Kruskal-Wallis",
+      text: "Generalização do Mann-Whitney para K > 2 grupos. Baseada em postos. Use quando os pressupostos da ANOVA são violados (normalidade ou homocedasticidade).",
+      formula: "H = (12 / (N·(N+1))) · Σ (R<span class='var-sub'>j</span>² / n<span class='var-sub'>j</span>) − 3·(N+1)",
+      note: "Se Kruskal-Wallis rejeita, o pós-hoc adequado é dunn.test (pacote dunn.test) ou pairwise.wilcox.test()."
+    },
+    expected: "Kruskal-Wallis rank sum test\n\ndata:  ideb by rede\nKruskal-Wallis chi-squared = 142.3, df = 3, p-value < 2.2e-16",
+    template: [{slot:0}, "(ideb ~ rede, data = ideb)"],
+    answers: ["kruskal.test"],
+    bank: ["kruskal.test", "wilcox.test", "aov", "friedman.test", "anova", "rank.test"],
+    hint: "kruskal.test() — análogo não-paramétrico de aov(). friedman.test() seria para medidas repetidas."
+  },
+
+  // -------------------- BLOCO 5: CATEGÓRICAS E CORREÇÕES --------------------
+  {
+    title: "Fase 15 — Qui-quadrado de independência",
+    desc: "Verifique se rede e etapa de ensino são INDEPENDENTES.",
+    theory: {
+      tag: "Categóricas",
+      title: "χ² de Pearson",
+      text: "Testa H<span class='var-sub'>0</span>: as duas variáveis categóricas são INDEPENDENTES. Compara contagens observadas com esperadas sob independência.",
+      formula: "χ² = Σ (O<span class='var-sub'>ij</span> − E<span class='var-sub'>ij</span>)² / E<span class='var-sub'>ij</span> ~ χ<span class='var-sub'>(r−1)(c−1)</span>²",
+      note: "Cuidado: invalida-se se >20% das células têm E < 5 ou alguma com E < 1. Nesses casos, use fisher.test()."
+    },
+    expected: "Pearson's Chi-squared test\n\ndata:  table(ideb$rede, ideb$etapa)\nX-squared = 14.21, df = 6, p-value = 0.0273",
+    template: [{slot:0}, "(table(ideb$rede, ideb$etapa))"],
+    answers: ["chisq.test"],
+    bank: ["chisq.test", "fisher.test", "prop.test", "g.test", "table", "mcnemar.test"],
+    hint: "chisq.test() trabalha com a tabela de contingência (use table() primeiro). Aceita também duas variáveis: chisq.test(x, y)."
+  },
+
+  {
+    title: "Fase 16 — Teste exato de Fisher",
+    desc: "Use o teste EXATO para uma tabela 2×2 (alternativa quando o χ² não é confiável).",
+    theory: {
+      tag: "Categóricas",
+      title: "Fisher's exact test",
+      text: "Calcula a probabilidade EXATA da tabela observada sob H<span class='var-sub'>0</span> (independência), assumindo marginais fixos. Indicado para amostras pequenas ou frequências esperadas baixas.",
+      formula: "P = C(a+b, a)·C(c+d, c) / C(n, a+c)",
+      note: "Para tabelas grandes (n > 1000) é computacionalmente caro. Para 2x2 sempre prefira Fisher quando alguma E < 5."
+    },
+    expected: "Fisher's Exact Test for Count Data\n\ndata:  tab\np-value = 0.0421\nalternative hypothesis: true odds ratio is not equal to 1\n95 percent confidence interval:\n 1.04 4.21\nsample estimates:\nodds ratio \n     2.10",
+    template: ["tab <- table(ideb$rede == \"Privada\", ideb$ideb >= 6)\n", {slot:0}, "(tab)"],
+    answers: ["fisher.test"],
+    bank: ["fisher.test", "chisq.test", "prop.test", "exact.test", "mcnemar.test", "barnard.test"],
+    hint: "fisher.test() devolve odds ratio e IC além do p-valor. Ideal para 2x2 com células pequenas."
+  },
+
+  {
+    title: "Fase 17 — Teste para duas proporções",
+    desc: "Compare a proporção de escolas com IDEB ≥ 6 entre redes Privada e Municipal.",
+    theory: {
+      tag: "Proporções",
+      title: "prop.test",
+      text: "Testa H<span class='var-sub'>0</span>: <strong>p<span class='var-sub'>1</span> = p<span class='var-sub'>2</span></strong> usando aproximação χ². Aceita vetores de sucessos e tentativas para K ≥ 2 grupos.",
+      formula: "χ² = Σ (p̂<span class='var-sub'>i</span> − p̂)² · n<span class='var-sub'>i</span> / (p̂·(1−p̂))",
+      note: "Para 1 amostra, prop.test(x, n, p = p0). Para 2: prop.test(c(x1, x2), c(n1, n2)). Aceita correction = FALSE para tirar correção de continuidade."
+    },
+    expected: "2-sample test for equality of proportions with continuity correction\n\ndata:  c(33, 18) out of c(50, 80)\nX-squared = 26.85, df = 1, p-value = 2.2e-07",
+    template: [{slot:0}, "(c(33, 18), c(50, 80))"],
+    answers: ["prop.test"],
+    bank: ["prop.test", "binom.test", "chisq.test", "fisher.test", "z.prop", "p.test"],
+    hint: "prop.test() é o teste de proporções via aproximação χ². binom.test() é exato mas só serve para 1 amostra."
+  },
+
+  {
+    title: "Fase 18 — Correção para múltiplas comparações",
+    desc: "Ajuste 6 p-valores brutos com correção de Bonferroni.",
+    theory: {
+      tag: "Múltiplos testes",
+      title: "p.adjust",
+      text: "Ao fazer MUITOS testes, a probabilidade de pelo menos um falso positivo cresce rapidamente. <strong>Métodos de correção</strong> ajustam os p-valores para controlar o erro tipo I global (FWER) ou a taxa de descobertas falsas (FDR).",
+      formula: "Bonferroni: p<span class='var-sub'>adj</span> = min(p · m, 1)",
+      note: "Métodos: 'bonferroni' (mais conservador), 'holm' (mais potente que Bonferroni), 'BH' (Benjamini-Hochberg, controla FDR). Bonferroni é o padrão clássico."
+    },
+    expected: "[1] 0.0060 0.1800 0.0240 0.2400 1.0000 1.0000",
+    template: ["pvalores <- c(0.001, 0.030, 0.004, 0.040, 0.300, 0.800)\n", {slot:0}, "(pvalores, method = \"bonferroni\")"],
+    answers: ["p.adjust"],
+    bank: ["p.adjust", "bonferroni", "adjust", "correct", "holm", "fdr"],
+    hint: "p.adjust(p, method = ...) — methods disponíveis: bonferroni, holm, hommel, hochberg, BH, BY, fdr, none."
+  },
+
+  {
+    title: "Fase 19 — Kolmogorov-Smirnov (aderência a uma distribuição)",
+    desc: "Teste se o IDEB segue uma distribuição normal com média 5 e desvio 1.2.",
+    theory: {
+      tag: "Aderência",
+      title: "Kolmogorov-Smirnov",
+      text: "Compara a função de distribuição empírica com uma teórica (1 amostra) ou compara DUAS distribuições empíricas (2 amostras). Usa a maior distância vertical entre as funções.",
+      formula: "D = sup<span class='var-sub'>x</span> |F<span class='var-sub'>n</span>(x) − F<span class='var-sub'>0</span>(x)|",
+      note: "ks.test(x, 'pnorm', mean, sd) testa normalidade especificando parâmetros. ks.test(x, y) compara duas amostras. Cuidado: assume parâmetros KNOWN — para estimados, use lillie.test (nortest)."
+    },
+    expected: "One-sample Kolmogorov-Smirnov test\n\ndata:  ideb$ideb\nD = 0.0581, p-value = 0.3851\nalternative hypothesis: two-sided",
+    template: [{slot:0}, "(ideb$ideb, \"pnorm\",\n       mean = 5, sd = 1.2)"],
+    answers: ["ks.test"],
+    bank: ["ks.test", "shapiro.test", "lillie.test", "ad.test", "chisq.test", "ks"],
+    hint: "ks.test() do base R — aceita 'pnorm', 'pexp', etc. como segunda argumento, e os parâmetros da distribuição em sequência."
+  },
+
+  // -------------------- BOSS FINAL --------------------
+  {
+    title: "Fase 20 — Workflow inteligente (boss final)",
+    desc: "Compare o IDEB entre redes Privada e Estadual: (1) testa normalidade, (2) testa variâncias, (3) escolhe entre t.test e Wilcoxon de acordo.",
+    theory: {
+      tag: "Workflow",
+      title: "Fluxo de decisão de teste",
+      text: "<strong>(1)</strong> verificar normalidade (Shapiro), <strong>(2)</strong> verificar variâncias (F-test), <strong>(3)</strong> aplicar o teste apropriado — t.test se normal, Wilcoxon caso contrário.",
+      formula: "shapiro → var.test → t.test OU wilcox.test",
+      note: "Para n grande (TCL), normalidade dos dados é menos crítica — mas dos resíduos do modelo subjacente, sim."
+    },
+    expected: "1) Shapiro p < 0.05 → não-normal\n2) var.test p > 0.05 → variâncias iguais\n3) Como NÃO é normal, usar wilcox.test",
+    template: [
+      "sub <- subset(ideb, rede %in% c(\"Privada\", \"Estadual\"))\n\n",
+      "# 1. Normalidade dos dois grupos\n", {slot:0}, "(sub$ideb[sub$rede == \"Privada\"])\n", {slot:0}, "(sub$ideb[sub$rede == \"Estadual\"])\n\n",
+      "# 2. Homogeneidade de variâncias\n", {slot:1}, "(ideb ~ rede, data = sub)\n\n",
+      "# 3. Como (suponha) NÃO há normalidade, usar não-paramétrico\n", {slot:2}, "(ideb ~ rede, data = sub)"
+    ],
+    answers: ["shapiro.test", "var.test", "wilcox.test"],
+    bank: ["shapiro.test", "var.test", "wilcox.test", "t.test", "ks.test", "bartlett.test", "kruskal.test", "fisher.test"],
+    hint: "Sequência: shapiro.test → var.test → wilcox.test (não-paramétrico, pois assumimos falha na normalidade)."
+  }
+];
+
+// =====================================================================
+// ENGINE
+// =====================================================================
+function rng(seed) { let s = seed; return () => { s = (s*9301+49297)%233280; return s/233280; }; }
+
+const estado = {
+  fase: 0, pontos: 0, vidas: 3, tentativas: 0,
+  dicasUsadas: 0, errosTotais: 0, hintUsadaNaFase: false,
+  slotsFilled: []
+};
+
+function trocarTela(id) {
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function iniciarJogo() {
+  Object.assign(estado, {fase:0, pontos:0, vidas:3, tentativas:0, dicasUsadas:0, errosTotais:0});
+  document.getElementById('hud').style.display = 'flex';
+  trocarTela('screen-game');
+  carregarFase();
+}
+function reiniciarJogo() { iniciarJogo(); }
+
+function carregarFase() {
+  const f = FASES[estado.fase];
+  estado.slotsFilled = new Array(f.answers.length).fill(null);
+  estado.tentativas = 0;
+  estado.hintUsadaNaFase = false;
+
+  document.getElementById('hud-level').textContent = estado.fase + 1;
+  document.getElementById('hud-total').textContent = FASES.length;
+  document.getElementById('hud-score').textContent = estado.pontos;
+  document.getElementById('hud-lives').textContent = "♥".repeat(estado.vidas) + "♡".repeat(3 - estado.vidas);
+  document.getElementById('progress-fill').style.width = ((estado.fase) / FASES.length * 100) + '%';
+
+  document.getElementById('level-title').textContent = f.title;
+  document.getElementById('level-desc').textContent = f.desc;
+
+  document.getElementById('theory-tag').textContent   = f.theory.tag;
+  document.getElementById('theory-title').textContent = f.theory.title;
+  document.getElementById('theory-text').innerHTML    = f.theory.text;
+  document.getElementById('theory-formula').innerHTML = f.theory.formula;
+  document.getElementById('theory-note').textContent  = f.theory.note;
+  document.getElementById('expected-content').textContent = f.expected;
+
+  renderTemplate();
+  renderBank();
+
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('btn-check').style.display = '';
+  document.getElementById('btn-next').style.display = 'none';
+}
+
+function renderTemplate() {
+  const f = FASES[estado.fase];
+  const cont = document.getElementById('code-template');
+  cont.innerHTML = '';
+  f.template.forEach(piece => {
+    if (typeof piece === 'string') {
+      const span = document.createElement('span');
+      span.textContent = piece;
+      cont.appendChild(span);
+    } else {
+      const slot = document.createElement('span');
+      slot.className = 'slot';
+      slot.dataset.slotIdx = piece.slot;
+      slot.textContent = '___';
+      if (estado.slotsFilled[piece.slot]) {
+        slot.classList.add('filled');
+        slot.textContent = estado.slotsFilled[piece.slot];
+      }
+      slot.addEventListener('dragover', e => { e.preventDefault(); slot.classList.add('over'); });
+      slot.addEventListener('dragleave', () => slot.classList.remove('over'));
+      slot.addEventListener('drop', e => {
+        e.preventDefault();
+        slot.classList.remove('over');
+        const val = e.dataTransfer.getData('text/plain');
+        if (!val) return;
+        estado.slotsFilled[piece.slot] = val;
+        renderTemplate(); renderBank();
+      });
+      slot.addEventListener('click', () => {
+        if (estado.slotsFilled[piece.slot]) {
+          estado.slotsFilled[piece.slot] = null;
+          renderTemplate(); renderBank();
+        }
+      });
+      cont.appendChild(slot);
+    }
+  });
+}
+
+function renderBank() {
+  const f = FASES[estado.fase];
+  const bank = document.getElementById('block-bank');
+  bank.innerHTML = '';
+  const usados = {};
+  estado.slotsFilled.forEach(v => { if (v) usados[v] = (usados[v]||0) + 1; });
+  const embaralhado = f.bank.slice();
+  const r = rng(estado.fase * 37 + 1);
+  for (let i = embaralhado.length-1; i>0; i--) {
+    const j = Math.floor(r()*(i+1));
+    [embaralhado[i], embaralhado[j]] = [embaralhado[j], embaralhado[i]];
+  }
+  embaralhado.forEach(b => {
+    const el = document.createElement('div');
+    el.className = 'block';
+    if (usados[b]) el.classList.add('used');
+    el.textContent = b;
+    el.draggable = true;
+    el.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', b); el.classList.add('dragging'); });
+    el.addEventListener('dragend', () => el.classList.remove('dragging'));
+    bank.appendChild(el);
+  });
+}
+
+function verificar() {
+  const f = FASES[estado.fase];
+  if (estado.slotsFilled.some(v => v === null)) {
+    mostrarFeedback('error', 'Preencha todos os slots antes de verificar.', 'error');
+    return;
+  }
+  const errados = [];
+  f.answers.forEach((ans, i) => { if (estado.slotsFilled[i] !== ans) errados.push(i); });
+
+  document.querySelectorAll('.slot').forEach(s => {
+    const idx = parseInt(s.dataset.slotIdx);
+    s.classList.remove('correct','wrong');
+    if (errados.includes(idx)) s.classList.add('wrong');
+    else if (estado.slotsFilled[idx]) s.classList.add('correct');
+  });
+
+  if (errados.length === 0) {
+    let ganho = 100;
+    if (estado.tentativas === 1) ganho = 60;
+    else if (estado.tentativas >= 2) ganho = 30;
+    if (estado.hintUsadaNaFase) ganho = Math.max(10, ganho - 30);
+    estado.pontos += ganho;
+    document.getElementById('hud-score').textContent = estado.pontos;
+    mostrarFeedback('success',
+      `Acertou! +${ganho} pontos. ` + (estado.fase < FASES.length-1 ? 'Próxima fase liberada.' : 'Você terminou todas as fases.'),
+      'check_circle');
+    document.getElementById('btn-check').style.display = 'none';
+    document.getElementById('btn-next').style.display = '';
+    document.getElementById('progress-fill').style.width = ((estado.fase+1) / FASES.length * 100) + '%';
+    confetti();
+  } else {
+    estado.tentativas++;
+    estado.errosTotais++;
+    estado.vidas--;
+    document.getElementById('hud-lives').textContent = "♥".repeat(Math.max(0,estado.vidas)) + "♡".repeat(3-Math.max(0,estado.vidas));
+    const dirPanel = document.querySelectorAll('.panel-game')[1];
+    if (dirPanel) { dirPanel.classList.add('shake'); setTimeout(()=>dirPanel.classList.remove('shake'), 400); }
+    if (estado.vidas <= 0) {
+      mostrarFeedback('error', `Sem vidas. Resposta correta: ${f.answers.join(', ')}. Avançando...`, 'error');
+      document.getElementById('btn-check').style.display = 'none';
+      document.getElementById('btn-next').style.display = '';
+      estado.vidas = 1;
+    } else {
+      mostrarFeedback('error', `${errados.length} slot(s) incorreto(s). Tente de novo.`, 'cancel');
+    }
+  }
+}
+
+function mostrarFeedback(tipo, msg, icone) {
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback show ' + tipo;
+  document.getElementById('feedback-icon').textContent = icone || 'info';
+  document.getElementById('feedback-msg').textContent = msg;
+}
+
+function usarDica() {
+  if (estado.hintUsadaNaFase) { mostrarFeedback('hint', 'Você já usou a dica desta fase.', 'lightbulb'); return; }
+  estado.hintUsadaNaFase = true;
+  estado.dicasUsadas++;
+  estado.pontos = Math.max(0, estado.pontos - 30);
+  document.getElementById('hud-score').textContent = estado.pontos;
+  mostrarFeedback('hint', FASES[estado.fase].hint, 'lightbulb');
+}
+
+function reiniciarFase() {
+  estado.slotsFilled = new Array(FASES[estado.fase].answers.length).fill(null);
+  renderTemplate(); renderBank();
+  document.getElementById('feedback').className = 'feedback';
+}
+
+function proximaFase() {
+  estado.fase++;
+  if (estado.fase >= FASES.length) mostrarFim();
+  else carregarFase();
+}
+
+function mostrarFim() {
+  document.getElementById('hud').style.display = 'none';
+  document.getElementById('end-score').textContent = estado.pontos;
+  document.getElementById('end-level').textContent = FASES.length;
+  document.getElementById('end-hints').textContent = estado.dicasUsadas;
+  document.getElementById('end-errors').textContent = estado.errosTotais;
+  const maxPts = FASES.length * 100;
+  const pct = estado.pontos / maxPts;
+  let stars = '⭐', titulo = 'Bom começo';
+  let msg = 'Você completou todas as fases. Que tal jogar de novo para melhorar a pontuação?';
+  if (pct >= 0.85) { stars = '⭐⭐⭐'; titulo = 'Inferencialista nato'; msg = 'Pontuação excelente. t.test, ANOVA, qui-quadrado, não-paramétricos — você domina.'; }
+  else if (pct >= 0.6) { stars = '⭐⭐'; titulo = 'Muito bem'; msg = 'Você foi bem. Revise as fases em que errou para fechar conceitos.'; }
+  document.getElementById('end-title').textContent = titulo;
+  document.getElementById('end-msg').textContent = msg;
+  document.getElementById('end-stars').textContent = stars;
+  trocarTela('screen-end');
+  confetti();
+}
+
+function confetti() {
+  const c = document.getElementById('confetti');
+  c.style.display = 'block';
+  c.width = window.innerWidth; c.height = window.innerHeight;
+  const ctx = c.getContext('2d');
+  const peças = [];
+  const cores = ['#1976d2','#e65100','#2e7d32','#d32f2f','#7b1fa2'];
+  for (let i=0; i<70; i++) {
+    peças.push({ x: Math.random()*c.width, y: -20 - Math.random()*200,
+      vx: (Math.random()-0.5)*3, vy: 2 + Math.random()*3,
+      cor: cores[Math.floor(Math.random()*cores.length)],
+      size: 6 + Math.random()*8, rot: Math.random()*Math.PI*2,
+      vr: (Math.random()-0.5)*0.3 });
+  }
+  let frames = 0;
+  function animar() {
+    ctx.clearRect(0,0,c.width,c.height);
+    peças.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.cor; ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+      ctx.restore();
+    });
+    frames++;
+    if (frames < 140) requestAnimationFrame(animar);
+    else { c.style.display = 'none'; ctx.clearRect(0,0,c.width,c.height); }
+  }
+  animar();
+}
+</script>
+</body>
+</html>

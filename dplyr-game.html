@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>dplyr Quest · IDEB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --primary:        #1976d2;
+    --primary-dark:   #1565c0;
+    --primary-light:  #42a5f5;
+    --secondary:      #9c27b0;
+    --error:          #d32f2f;
+    --warning:        #ed6c02;
+    --info:           #0288d1;
+    --success:        #2e7d32;
+    --bg:             #f5f5f5;
+    --paper:          #ffffff;
+    --surface-2:      #fafafa;
+    --divider:        rgba(0,0,0,0.12);
+    --text-primary:   rgba(0,0,0,0.87);
+    --text-secondary: rgba(0,0,0,0.6);
+    --on-primary:     #ffffff;
+    --e1: 0 2px 1px -1px rgba(0,0,0,0.2), 0 1px 1px 0 rgba(0,0,0,0.14), 0 1px 3px 0 rgba(0,0,0,0.12);
+    --e2: 0 3px 1px -2px rgba(0,0,0,0.2), 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12);
+    --e4: 0 2px 4px -1px rgba(0,0,0,0.2), 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12);
+    --cat-1: #1976d2; --cat-2: #d32f2f; --cat-3: #2e7d32;
+    --cat-4: #ed6c02; --cat-5: #7b1fa2; --cat-6: #00838f;
+  }
+
+  body {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+
+  .appbar {
+    background: var(--primary);
+    color: var(--on-primary);
+    box-shadow: var(--e4);
+    position: sticky; top: 0; z-index: 100;
+    padding: 0 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    min-height: 64px;
+  }
+  .appbar-brand { display: inline-flex; align-items: center; margin-right: 16px; text-decoration: none; }
+  .appbar-brand img { height: 36px; display: block; border-radius: 8px; background: white; padding: 2px; transition: transform 0.2s; }
+  .appbar-brand:hover img { transform: scale(1.04); }
+  .appbar-left { display: flex; align-items: center; }
+  .appbar-title { display: flex; align-items: center; gap: 12px; font-size: 20px; font-weight: 500; letter-spacing: 0.0075em; }
+  .appbar-title .material-icons { font-size: 28px; }
+  .appbar-title .sub { font-size: 12px; font-weight: 400; opacity: 0.85; margin-left: 8px; }
+  .hud { display: flex; gap: 8px; align-items: center; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.16); color: var(--on-primary); padding: 6px 12px; border-radius: 16px; font-size: 13px; font-weight: 500; }
+  .chip .material-icons { font-size: 18px; }
+  .chip-progress { background: rgba(255,255,255,0.16); width: 140px; height: 4px; border-radius: 2px; overflow: hidden; margin-left: 8px; }
+  .chip-progress > div { height: 100%; background: var(--on-primary); width: 0%; transition: width 0.4s; }
+
+  .screen { display: none; padding: 32px 24px 64px; }
+  .screen.active { display: block; }
+
+  #screen-start {
+    text-align: center; padding-top: 80px;
+    min-height: 85vh;
+    display: none; flex-direction: column; align-items: center;
+  }
+  #screen-start.active { display: flex; }
+  #screen-start h1 { font-size: 60px; font-weight: 300; letter-spacing: -0.5px; color: var(--text-primary); margin-bottom: 16px; }
+  #screen-start h1 .accent { color: var(--primary); font-weight: 500; }
+  #screen-start .lead { font-size: 16px; color: var(--text-secondary); max-width: 640px; margin: 0 auto 8px; line-height: 1.6; }
+  #screen-start .lead code { background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px; font-family: 'Roboto Mono', monospace; font-size: 13px; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px; border: none; cursor: pointer; font-family: inherit;
+    font-weight: 500; font-size: 14px; letter-spacing: 0.02857em;
+    text-transform: uppercase; padding: 8px 22px; min-height: 36px;
+    border-radius: 4px; transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    position: relative; overflow: hidden; user-select: none;
+  }
+  .btn .material-icons { font-size: 18px; }
+  .btn-contained { background: var(--primary); color: var(--on-primary); box-shadow: var(--e2); }
+  .btn-contained:hover { background: var(--primary-dark); box-shadow: var(--e4); }
+  .btn-text { background: transparent; color: var(--primary); padding: 6px 16px; }
+  .btn-text:hover { background: rgba(25,118,210,0.08); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+  .btn-fab { margin-top: 40px; padding: 14px 40px; font-size: 15px; min-height: 48px; border-radius: 8px; }
+  .btn::after {
+    content: ''; position: absolute; top: 50%; left: 50%;
+    width: 0; height: 0; border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease;
+    pointer-events: none;
+  }
+  .btn-text::after { background: rgba(25,118,210,0.2); }
+  .btn:active::after { width: 220%; height: 220%; transition: 0s; }
+
+  .card { background: var(--paper); border-radius: 8px; box-shadow: var(--e1); padding: 24px; }
+  .card-feature { background: var(--paper); border-radius: 8px; box-shadow: var(--e1); padding: 28px; text-align: left; }
+  .feature-icon {
+    width: 48px; height: 48px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: rgba(25,118,210,0.12); color: var(--primary); margin-bottom: 16px;
+  }
+  .feature-icon .material-icons { font-size: 28px; }
+  .card-feature h3 { font-size: 18px; font-weight: 500; margin-bottom: 8px; color: var(--text-primary); }
+  .card-feature p { font-size: 14px; color: var(--text-secondary); line-height: 1.55; }
+  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 56px; max-width: 960px; width: 100%; }
+
+  .game-grid { display: grid; grid-template-columns: 1fr 1.15fr; gap: 24px; max-width: 1440px; margin: 0 auto; }
+  .panel-title {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 500; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-secondary);
+    margin-bottom: 16px;
+  }
+  .panel-title .material-icons { font-size: 18px; color: var(--primary); }
+  .level-title { font-size: 22px; font-weight: 500; color: var(--text-primary); margin-bottom: 4px; }
+  .level-desc { color: var(--text-secondary); font-size: 14px; line-height: 1.55; margin-bottom: 20px; }
+
+  /* Tabela resultado (no estilo do RStudio / tibble print) */
+  .result-table-wrap {
+    background: var(--surface-2); border: 1px solid var(--divider);
+    border-radius: 4px; padding: 12px; overflow-x: auto;
+  }
+  .table-meta { font-size: 12px; color: var(--text-secondary); font-family: 'Roboto Mono', monospace; margin-bottom: 8px; }
+  .table-meta b { color: var(--primary); font-weight: 500; }
+  table.result-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Roboto Mono', 'SF Mono', 'Monaco', monospace;
+    font-size: 13px;
+    background: white;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  table.result-table th {
+    background: var(--surface-2);
+    color: var(--text-primary);
+    font-weight: 500;
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 2px solid var(--primary);
+    font-size: 12px;
+  }
+  table.result-table th .col-type {
+    display: block; font-size: 10px; color: var(--text-secondary);
+    font-weight: 400; text-transform: lowercase;
+  }
+  table.result-table td {
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--divider);
+    color: var(--text-primary);
+  }
+  table.result-table td.num { text-align: right; color: var(--text-primary); }
+  table.result-table tbody tr:hover { background: rgba(25,118,210,0.04); }
+
+  /* Code block (console R, limpo) */
+  .code-block {
+    background: #fafafa; color: #212121;
+    padding: 20px 22px; border-radius: 4px;
+    border: 1px solid var(--divider);
+    font-family: 'Roboto Mono', 'SF Mono', 'Monaco', monospace;
+    font-size: 14px; line-height: 2.0;
+    white-space: pre-wrap;
+    margin-bottom: 20px;
+    min-height: 130px;
+  }
+  .slot {
+    display: inline-block; min-width: 96px;
+    padding: 3px 12px; margin: 0 3px;
+    background: #fff;
+    border: 1.5px dashed #9e9e9e;
+    border-radius: 4px;
+    color: #9e9e9e;
+    text-align: center; font-style: italic;
+    font-family: 'Roboto Mono', monospace;
+    vertical-align: middle; transition: all 0.15s;
+  }
+  .slot.over    { background: rgba(25,118,210,0.08); border-color: var(--primary); border-style: solid; }
+  .slot.filled  { background: rgba(25,118,210,0.08); border: 1.5px solid var(--primary); color: var(--primary-dark); font-style: normal; font-weight: 500; cursor: pointer; }
+  .slot.wrong   { background: rgba(211,47,47,0.08); border: 1.5px solid var(--error); color: var(--error); }
+  .slot.correct { background: rgba(46,125,50,0.08); border: 1.5px solid var(--success); color: var(--success); }
+
+  .bank-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); margin-bottom: 12px; font-weight: 500; }
+  .bank {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    min-height: 88px; padding: 16px;
+    background: var(--surface-2); border-radius: 4px; border: 1px solid var(--divider);
+  }
+  .block {
+    display: inline-flex; align-items: center;
+    padding: 8px 14px; background: var(--paper);
+    color: var(--text-primary); border: 1px solid var(--divider);
+    border-radius: 16px;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 13px; font-weight: 500;
+    cursor: grab; user-select: none;
+    transition: all 0.15s; box-shadow: var(--e1);
+  }
+  .block:hover { background: var(--surface-2); box-shadow: var(--e2); transform: translateY(-1px); }
+  .block:active { cursor: grabbing; }
+  .block.dragging { opacity: 0.4; }
+  .block.used { display: none; }
+
+  .actions { display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; justify-content: flex-end; }
+
+  .feedback {
+    margin-top: 16px; padding: 12px 16px; border-radius: 4px;
+    font-size: 14px; line-height: 1.5;
+    border-left: 4px solid; display: none; align-items: flex-start; gap: 10px;
+  }
+  .feedback.show { display: flex; }
+  .feedback.success { background: #edf7ed; color: #1e4620; border-color: var(--success); }
+  .feedback.error   { background: #fdecea; color: #5f2120; border-color: var(--error); }
+  .feedback.hint    { background: #fff4e5; color: #663c00; border-color: var(--warning); }
+  .feedback .material-icons { font-size: 22px; }
+  .feedback.success .material-icons { color: var(--success); }
+  .feedback.error .material-icons   { color: var(--error); }
+  .feedback.hint .material-icons    { color: var(--warning); }
+
+  #screen-end { text-align: center; padding-top: 80px; min-height: 80vh; }
+  #screen-end h1 { font-size: 48px; font-weight: 300; color: var(--text-primary); margin-bottom: 12px; letter-spacing: -0.5px; }
+  #screen-end .end-sub { font-size: 16px; color: var(--text-secondary); max-width: 560px; margin: 0 auto; }
+  .final-score-card { background: var(--paper); border-radius: 8px; box-shadow: var(--e2); padding: 32px; margin: 32px auto; max-width: 480px; }
+  .final-score { font-size: 72px; font-weight: 300; color: var(--primary); margin: 8px 0; letter-spacing: -2px; }
+  .stars { font-size: 36px; margin: 8px 0 16px; letter-spacing: 10px; }
+  .final-stats { display: flex; justify-content: center; gap: 56px; flex-wrap: wrap; }
+  .final-stat .v { font-size: 28px; font-weight: 500; color: var(--text-primary); }
+  .final-stat .l { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .card, .panel-game { animation: fadeIn 0.3s ease; }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  .shake { animation: shake 0.35s; }
+
+  #confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 200; display: none; }
+
+  @media (max-width: 960px) {
+    .game-grid { grid-template-columns: 1fr; }
+    .features-grid { grid-template-columns: 1fr; }
+    .hud .chip-progress { display: none; }
+    #screen-start h1 { font-size: 40px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="appbar">
+  <div class="appbar-left">
+    <a href="index.html" class="appbar-brand" title="Voltar ao portal Evante">
+      <img src="Evante-01.jpg" alt="Evante" />
+    </a>
+    <div class="appbar-title">
+      <span class="material-icons">data_object</span>
+      dplyr Quest <span class="sub">· IDEB</span>
+    </div>
+  </div>
+  <div class="hud" id="hud" style="display:none;">
+    <div class="chip"><span class="material-icons">flag</span><span id="hud-level">1</span>/<span id="hud-total">20</span></div>
+    <div class="chip-progress"><div id="progress-fill"></div></div>
+    <div class="chip"><span class="material-icons">stars</span><span id="hud-score">0</span></div>
+    <div class="chip"><span class="material-icons">favorite</span><span id="hud-lives">3</span></div>
+  </div>
+</header>
+
+<section id="screen-start" class="screen active">
+  <h1>dplyr <span class="accent">Quest</span></h1>
+  <p class="lead">Arraste blocos de código para reproduzir as <strong>tabelas-alvo</strong> usando as principais funções do <code>dplyr</code>.</p>
+  <p class="lead">20 fases progressivas: <code>select</code>, <code>filter</code>, <code>mutate</code>, <code>summarise</code>, <code>group_by</code>, joins e mais. Dataset: <code>ideb</code> (escolas de Alagoas).</p>
+
+  <button class="btn btn-contained btn-fab" onclick="iniciarJogo()">
+    <span class="material-icons">play_arrow</span>Começar
+  </button>
+
+  <div class="features-grid">
+    <div class="card-feature">
+      <div class="feature-icon"><span class="material-icons">table_chart</span></div>
+      <h3>Veja a tabela-alvo</h3>
+      <p>Cada fase mostra o resultado esperado em formato tibble — o que sairia no console R.</p>
+    </div>
+    <div class="card-feature">
+      <div class="feature-icon"><span class="material-icons">drag_indicator</span></div>
+      <h3>Monte a pipeline</h3>
+      <p>Encaixe verbos do dplyr (<code>filter</code>, <code>group_by</code>, <code>summarise</code>...) nos slots do código.</p>
+    </div>
+    <div class="card-feature">
+      <div class="feature-icon"><span class="material-icons">emoji_events</span></div>
+      <h3>Pontue</h3>
+      <p>Acerte de primeira: 100 pts. Use dicas se travar (-30 pts cada).</p>
+    </div>
+  </div>
+</section>
+
+<section id="screen-game" class="screen">
+  <div class="game-grid">
+    <div class="card panel-game">
+      <div class="panel-title"><span class="material-icons">visibility</span>Tabela-alvo</div>
+      <div class="level-title" id="level-title">Fase 1</div>
+      <div class="level-desc" id="level-desc"></div>
+      <div class="result-table-wrap">
+        <div class="table-meta" id="table-meta"></div>
+        <div id="target-table"></div>
+      </div>
+    </div>
+
+    <div class="card panel-game">
+      <div class="panel-title"><span class="material-icons">code</span>Monte o código</div>
+      <div class="code-block" id="code-template"></div>
+
+      <div class="bank-title">Blocos disponíveis · arraste para os slots</div>
+      <div class="bank" id="block-bank"></div>
+
+      <div class="feedback" id="feedback">
+        <span class="material-icons" id="feedback-icon">info</span>
+        <span id="feedback-msg"></span>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-text" onclick="usarDica()"><span class="material-icons">lightbulb</span>Dica · -30</button>
+        <button class="btn btn-text" onclick="reiniciarFase()"><span class="material-icons">refresh</span>Reiniciar</button>
+        <button class="btn btn-contained" id="btn-check" onclick="verificar()"><span class="material-icons">check_circle</span>Verificar</button>
+        <button class="btn btn-contained" id="btn-next" onclick="proximaFase()" style="display:none;">Próxima<span class="material-icons">arrow_forward</span></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="screen-end" class="screen">
+  <h1 id="end-title">Parabéns</h1>
+  <p class="end-sub" id="end-msg">Você completou todas as fases.</p>
+  <div class="final-score-card">
+    <div class="stars" id="end-stars">⭐⭐⭐</div>
+    <div class="final-score" id="end-score">0</div>
+    <div class="final-stats">
+      <div class="final-stat"><div class="v" id="end-level">20</div><div class="l">Fases</div></div>
+      <div class="final-stat"><div class="v" id="end-hints">0</div><div class="l">Dicas</div></div>
+      <div class="final-stat"><div class="v" id="end-errors">0</div><div class="l">Erros</div></div>
+    </div>
+  </div>
+  <button class="btn btn-contained btn-fab" onclick="reiniciarJogo()">
+    <span class="material-icons">replay</span>Jogar de novo
+  </button>
+</section>
+
+<canvas id="confetti"></canvas>
+
+<script>
+// =====================================================================
+// DATASET IDEB SIMULADO (mesmo schema do ggplot game)
+// =====================================================================
+const REDES = ["Municipal","Estadual","Federal","Privada"];
+const ETAPAS = ["Anos Iniciais","Anos Finais","Ensino Medio"];
+const MUNICIPIOS = ["Maceio","Arapiraca","Palmeira","Penedo","Uniao dos Palmares","Santana","Delmiro","Coruripe","Marechal","Pilar"];
+const ANOS = [2007,2009,2011,2013,2015,2017,2019,2021];
+
+function rng(seed) { let s = seed; return () => { s = (s*9301+49297)%233280; return s/233280; }; }
+
+const IDEB = (() => {
+  const r = rng(73);
+  const arr = [];
+  for (let i = 0; i < 80; i++) {  // menos linhas para tabelas previsiveis
+    const rede = REDES[Math.floor(r()*REDES.length)];
+    const etapa = ETAPAS[Math.floor(r()*ETAPAS.length)];
+    const ano = ANOS[Math.floor(r()*ANOS.length)];
+    const municipio = MUNICIPIOS[Math.floor(r()*MUNICIPIOS.length)];
+    const baseRede = {Privada:6.5, Federal:6.0, Estadual:4.2, Municipal:4.0}[rede];
+    const tend = (ano - 2007) * 0.12;
+    const ajusteEtapa = {"Anos Iniciais":+0.7,"Anos Finais":0.0,"Ensino Medio":-0.5}[etapa];
+    const ideb = Math.max(1.5, Math.min(8.9, baseRede + tend + ajusteEtapa + (r()-0.5)*1.5));
+    const aprovacao = Math.max(55, Math.min(99, 70 + (ideb-4)*5 + (r()-0.5)*8));
+    const meta = Math.max(3, Math.min(7, baseRede + tend*0.8));
+    arr.push({
+      escola: "Escola " + (i+1),
+      municipio, rede, etapa, ano,
+      ideb: +ideb.toFixed(1),
+      aprovacao: +aprovacao.toFixed(1),
+      meta: +meta.toFixed(1)
+    });
+  }
+  return arr;
+})();
+
+// Tipos das colunas (para o cabeçalho da tabela)
+const TIPOS = {
+  escola: "chr", municipio: "chr", rede: "fct", etapa: "fct",
+  ano: "int", ideb: "dbl", aprovacao: "dbl", meta: "dbl",
+  n: "int", media: "dbl", media_ideb: "dbl", media_aprov: "dbl",
+  diff: "dbl", status: "chr", n_escolas: "int", n_municipios: "int",
+  ideb_medio: "dbl", aprovacao_media: "dbl",
+  meta_municipio: "dbl"
+};
+
+// Segundo dataset para joins: metas por município
+const METAS_MUNICIPIO = [
+  {municipio: "Maceio",                meta_municipio: 5.2},
+  {municipio: "Arapiraca",             meta_municipio: 4.8},
+  {municipio: "Palmeira",              meta_municipio: 4.5},
+  {municipio: "Penedo",                meta_municipio: 4.6},
+  {municipio: "Uniao dos Palmares",    meta_municipio: 4.3},
+  {municipio: "Santana",               meta_municipio: 4.1},
+  {municipio: "Delmiro",               meta_municipio: 4.4},
+  {municipio: "Coruripe",              meta_municipio: 4.7},
+  {municipio: "Marechal",              meta_municipio: 4.5},
+  {municipio: "Pilar",                 meta_municipio: 4.6}
+];
+
+// =====================================================================
+// HELPERS dplyr-like em JS (para gerar as tabelas-alvo)
+// =====================================================================
+function jSelect(data, ...cols) { return data.map(r => Object.fromEntries(cols.map(c => [c, r[c]]))); }
+function jFilter(data, fn)      { return data.filter(fn); }
+function jArrange(data, ...keys) {
+  return [...data].sort((a, b) => {
+    for (const k of keys) {
+      let desc = false, key = k;
+      if (typeof k === 'object') { desc = k.desc; key = k.key; }
+      if (a[key] < b[key]) return desc ? 1 : -1;
+      if (a[key] > b[key]) return desc ? -1 : 1;
+    }
+    return 0;
+  });
+}
+function jMutate(data, fn) { return data.map(r => ({...r, ...fn(r)})); }
+function jDistinct(data, col) {
+  const seen = new Set(); const out = [];
+  data.forEach(r => { if (!seen.has(r[col])) { seen.add(r[col]); out.push({[col]: r[col]}); } });
+  return out;
+}
+function jGroupSummarise(data, groupCol, sumFn) {
+  const groups = {};
+  data.forEach(r => { (groups[r[groupCol]] = groups[r[groupCol]] || []).push(r); });
+  return Object.entries(groups).map(([k, vs]) => ({[groupCol]: k, ...sumFn(vs)}));
+}
+function jCount(data, col) {
+  const groups = {};
+  data.forEach(r => { groups[r[col]] = (groups[r[col]] || 0) + 1; });
+  return Object.entries(groups).map(([k, n]) => ({[col]: k, n}));
+}
+function jRename(data, mapping) {
+  return data.map(r => {
+    const out = {...r};
+    Object.entries(mapping).forEach(([oldK, newK]) => { out[newK] = out[oldK]; delete out[oldK]; });
+    return out;
+  });
+}
+function jLeftJoin(data, by, joinTbl) {
+  return data.map(r => {
+    const m = joinTbl.find(j => j[by] === r[by]);
+    return m ? {...r, ...m} : {...r};
+  });
+}
+function mean(arr) { return arr.reduce((a,b)=>a+b,0)/arr.length; }
+function nDistinct(arr) { return new Set(arr).size; }
+
+// =====================================================================
+// 20 FASES — funções reais do dplyr
+// =====================================================================
+const FASES = [
+  {
+    title: "Fase 1 — select() colunas",
+    desc: "Selecione apenas as colunas escola, rede e ideb do dataset.",
+    template: ["ideb %>%\n  ", {slot:0}, "(escola, rede, ideb)"],
+    answers: ["select"],
+    bank: ["select", "filter", "mutate", "arrange", "rename", "pull"],
+    hint: "Para escolher colunas, use select(). Para escolher linhas, filter().",
+    cols: ["escola","rede","ideb"],
+    nRows: 6,
+    compute: () => jSelect(IDEB, "escola","rede","ideb")
+  },
+
+  {
+    title: "Fase 2 — filter() linhas",
+    desc: "Mantenha apenas escolas com IDEB > 6.",
+    template: ["ideb %>%\n  ", {slot:0}, "(ideb > 6)"],
+    answers: ["filter"],
+    bank: ["filter", "select", "arrange", "slice", "subset", "if_else"],
+    hint: "Para filtrar linhas com uma condicao logica, use filter().",
+    cols: ["escola","rede","etapa","ano","ideb","aprovacao","meta"],
+    nRows: 6,
+    compute: () => jFilter(IDEB, r => r.ideb > 6)
+  },
+
+  {
+    title: "Fase 3 — arrange() ordenar",
+    desc: "Ordene a tabela do MAIOR para o MENOR IDEB.",
+    template: ["ideb %>%\n  ", {slot:0}, "(", {slot:1}, "(ideb))"],
+    answers: ["arrange", "desc"],
+    bank: ["arrange", "desc", "order", "sort", "rev", "rank"],
+    hint: "arrange() ordena. Para decrescente, envolva a coluna com desc().",
+    cols: ["escola","rede","ideb"],
+    nRows: 6,
+    compute: () => jSelect(jArrange(IDEB, {key: "ideb", desc: true}), "escola","rede","ideb")
+  },
+
+  {
+    title: "Fase 4 — mutate() criar coluna",
+    desc: "Crie uma nova coluna 'diff' = ideb - meta (distância da meta).",
+    template: ["ideb %>%\n  ", {slot:0}, "(diff = ideb - meta) %>%\n  select(escola, ideb, meta, diff)"],
+    answers: ["mutate"],
+    bank: ["mutate", "transmute", "summarise", "rename", "assign", "add_column"],
+    hint: "mutate() cria/modifica colunas mantendo as outras.",
+    cols: ["escola","ideb","meta","diff"],
+    nRows: 6,
+    compute: () => jSelect(jMutate(IDEB, r => ({diff: +(r.ideb - r.meta).toFixed(1)})),
+                          "escola","ideb","meta","diff")
+  },
+
+  {
+    title: "Fase 5 — summarise() agregar",
+    desc: "Calcule a media geral do IDEB de todas as escolas.",
+    template: ["ideb %>%\n  ", {slot:0}, "(media_ideb = ", {slot:1}, "(ideb))"],
+    answers: ["summarise", "mean"],
+    bank: ["summarise", "mean", "summarize_all", "median", "sum", "aggregate"],
+    hint: "summarise() colapsa o tibble em uma linha. mean() calcula a media.",
+    cols: ["media_ideb"],
+    nRows: 1,
+    compute: () => [{media_ideb: +mean(IDEB.map(r => r.ideb)).toFixed(2)}]
+  },
+
+  {
+    title: "Fase 6 — group_by() + summarise()",
+    desc: "Calcule o IDEB medio POR REDE.",
+    template: ["ideb %>%\n  ", {slot:0}, "(rede) %>%\n  ", {slot:1}, "(media_ideb = mean(ideb))"],
+    answers: ["group_by", "summarise"],
+    bank: ["group_by", "summarise", "split", "by", "group", "summarize_each"],
+    hint: "group_by(coluna) seguido de summarise(...) faz agregacao por grupo.",
+    cols: ["rede","media_ideb"],
+    nRows: 4,
+    compute: () => jGroupSummarise(IDEB, "rede", vs => ({
+      media_ideb: +mean(vs.map(r => r.ideb)).toFixed(2)
+    }))
+  },
+
+  {
+    title: "Fase 7 — count() contar grupos",
+    desc: "Conte quantas escolas existem em cada rede.",
+    template: ["ideb %>%\n  ", {slot:0}, "(rede)"],
+    answers: ["count"],
+    bank: ["count", "tally", "n", "length", "nrow", "table"],
+    hint: "count(coluna) e um atalho para group_by(coluna) %>% summarise(n = n()).",
+    cols: ["rede","n"],
+    nRows: 4,
+    compute: () => jCount(IDEB, "rede")
+  },
+
+  {
+    title: "Fase 8 — distinct() unicos",
+    desc: "Liste todos os municipios distintos presentes no dataset.",
+    template: ["ideb %>%\n  ", {slot:0}, "(municipio)"],
+    answers: ["distinct"],
+    bank: ["distinct", "unique", "duplicated", "select", "pull"],
+    hint: "distinct(coluna) retorna apenas valores unicos daquela coluna.",
+    cols: ["municipio"],
+    nRows: 10,
+    compute: () => jDistinct(IDEB, "municipio")
+  },
+
+  {
+    title: "Fase 9 — rename() renomear",
+    desc: "Renomeie a coluna 'escola' para 'nome_escola' mantendo as demais.",
+    template: ["ideb %>%\n  ", {slot:0}, "(nome_escola = escola)"],
+    answers: ["rename"],
+    bank: ["rename", "mutate", "select", "rename_with", "names", "colnames"],
+    hint: "rename(novo_nome = nome_antigo) renomeia sem perder as outras colunas.",
+    cols: ["nome_escola","municipio","rede","etapa","ano","ideb","aprovacao","meta"],
+    nRows: 6,
+    compute: () => jRename(IDEB, {escola: "nome_escola"})
+  },
+
+  {
+    title: "Fase 10 — slice_max() top N",
+    desc: "Pegue as 5 escolas com MAIOR IDEB.",
+    template: ["ideb %>%\n  ", {slot:0}, "(ideb, n = 5) %>%\n  select(escola, rede, ideb)"],
+    answers: ["slice_max"],
+    bank: ["slice_max", "slice_min", "top_n", "head", "arrange", "filter"],
+    hint: "slice_max(coluna, n = 5) traz as 5 maiores. slice_min() para as menores.",
+    cols: ["escola","rede","ideb"],
+    nRows: 5,
+    compute: () => jSelect(jArrange(IDEB, {key:"ideb",desc:true}).slice(0,5),
+                          "escola","rede","ideb")
+  },
+
+  {
+    title: "Fase 11 — pipeline filter + arrange + select",
+    desc: "Escolas da rede 'Privada', ordenadas pelo IDEB descendente, mostrando apenas escola/ideb/aprovacao.",
+    template: ["ideb %>%\n  ", {slot:0}, '(rede == "Privada") %>%\n  ',
+               {slot:1}, "(desc(ideb)) %>%\n  ",
+               {slot:2}, "(escola, ideb, aprovacao)"],
+    answers: ["filter","arrange","select"],
+    bank: ["filter","arrange","select","mutate","group_by","summarise"],
+    hint: "Ordem da pipeline: filtrar -> ordenar -> selecionar colunas.",
+    cols: ["escola","ideb","aprovacao"],
+    nRows: 6,
+    compute: () => jSelect(
+      jArrange(jFilter(IDEB, r => r.rede === "Privada"), {key:"ideb",desc:true}),
+      "escola","ideb","aprovacao")
+  },
+
+  {
+    title: "Fase 12 — case_when() classificar",
+    desc: "Crie uma coluna 'status': 'Alto' se ideb>=6, 'Medio' se >=4, senao 'Baixo'.",
+    template: ["ideb %>%\n  mutate(status = ", {slot:0}, "(\n    ideb >= 6 ~ \"Alto\",\n    ideb >= 4 ~ \"Medio\",\n    TRUE ~ \"Baixo\"\n  )) %>%\n  select(escola, ideb, status)"],
+    answers: ["case_when"],
+    bank: ["case_when", "if_else", "ifelse", "switch", "recode", "case"],
+    hint: "case_when() encadeia varias condicoes; if_else() so faz 2 ramos.",
+    cols: ["escola","ideb","status"],
+    nRows: 6,
+    compute: () => jSelect(jMutate(IDEB, r => ({
+      status: r.ideb >= 6 ? "Alto" : (r.ideb >= 4 ? "Medio" : "Baixo")
+    })), "escola","ideb","status")
+  },
+
+  {
+    title: "Fase 13 — count + arrange (ranking)",
+    desc: "Ranking dos 5 municipios com MAIOR numero de escolas. Use count() e ordene em desc.",
+    template: ["ideb %>%\n  ", {slot:0}, "(municipio) %>%\n  ",
+               {slot:1}, "(desc(n)) %>%\n  ",
+               {slot:2}, "(5)"],
+    answers: ["count","arrange","slice_head"],
+    bank: ["count","arrange","slice_head","slice_tail","slice_max","summarise"],
+    hint: "Apos count() voce tem uma coluna 'n'. slice_head(5) pega as 5 primeiras linhas.",
+    cols: ["municipio","n"],
+    nRows: 5,
+    compute: () => jArrange(jCount(IDEB, "municipio"), {key:"n",desc:true}).slice(0,5)
+  },
+
+  {
+    title: "Fase 14 — summarise com múltiplas funções",
+    desc: "Por rede: numero de escolas (n) e media do IDEB.",
+    template: ["ideb %>%\n  group_by(rede) %>%\n  summarise(\n    n = ", {slot:0}, "(),\n    media_ideb = ", {slot:1}, "(ideb)\n  )"],
+    answers: ["n","mean"],
+    bank: ["n","mean","length","sum","nrow","count"],
+    hint: "n() conta linhas do grupo. mean() faz media de uma coluna.",
+    cols: ["rede","n","media_ideb"],
+    nRows: 4,
+    compute: () => jGroupSummarise(IDEB, "rede", vs => ({
+      n: vs.length,
+      media_ideb: +mean(vs.map(r => r.ideb)).toFixed(2)
+    }))
+  },
+
+  {
+    title: "Fase 15 — pull() extrair vetor",
+    desc: "Extraia a coluna 'ideb' como vetor (numerico, nao tibble) e calcule a media.",
+    template: ["ideb %>%\n  ", {slot:0}, "(ideb) %>%\n  ", {slot:1}, "()"],
+    answers: ["pull","mean"],
+    bank: ["pull","mean","select","summarise","sum","extract"],
+    hint: "pull(coluna) devolve um vetor, nao um tibble. Util para alimentar funcoes base.",
+    cols: ["[1] media"],
+    nRows: 1,
+    compute: () => [{"[1] media": +mean(IDEB.map(r => r.ideb)).toFixed(2)}],
+    customMeta: "# Resultado: vetor de comprimento 1"
+  },
+
+  {
+    title: "Fase 16 — left_join() unir tabelas",
+    desc: "Una a tabela ideb com a tabela metas_municipio pela coluna 'municipio'.",
+    template: ["ideb %>%\n  ", {slot:0}, "(metas_municipio, by = \"municipio\") %>%\n  select(escola, municipio, ideb, meta_municipio)"],
+    answers: ["left_join"],
+    bank: ["left_join","inner_join","right_join","full_join","merge","bind_cols"],
+    hint: "left_join mantem TODAS as linhas da esquerda. Use 'by' para indicar a coluna chave.",
+    cols: ["escola","municipio","ideb","meta_municipio"],
+    nRows: 6,
+    compute: () => jSelect(jLeftJoin(IDEB, "municipio", METAS_MUNICIPIO),
+                          "escola","municipio","ideb","meta_municipio")
+  },
+
+  {
+    title: "Fase 17 — n_distinct() em summarise",
+    desc: "Conte quantos municipios DIFERENTES cada rede atende.",
+    template: ["ideb %>%\n  group_by(rede) %>%\n  summarise(n_municipios = ", {slot:0}, "(municipio))"],
+    answers: ["n_distinct"],
+    bank: ["n_distinct","unique","length","distinct","n","count"],
+    hint: "n_distinct(coluna) conta valores unicos dentro do grupo.",
+    cols: ["rede","n_municipios"],
+    nRows: 4,
+    compute: () => jGroupSummarise(IDEB, "rede", vs => ({
+      n_municipios: nDistinct(vs.map(r => r.municipio))
+    }))
+  },
+
+  {
+    title: "Fase 18 — slice_sample() amostra aleatoria",
+    desc: "Sorteie 5 escolas aleatorias do dataset (amostragem simples).",
+    template: ["ideb %>%\n  ", {slot:0}, "(n = 5)"],
+    answers: ["slice_sample"],
+    bank: ["slice_sample","sample","sample_n","slice_head","slice","filter"],
+    hint: "slice_sample(n = 5) sorteia 5 linhas. sample_n() existia mas foi superseded.",
+    cols: ["escola","municipio","rede","ideb"],
+    nRows: 5,
+    compute: () => {
+      // amostra deterministica para o display (usando rng)
+      const r = rng(1234);
+      const idx = new Set();
+      while (idx.size < 5) idx.add(Math.floor(r()*IDEB.length));
+      return jSelect([...idx].map(i => IDEB[i]), "escola","municipio","rede","ideb");
+    }
+  },
+
+  {
+    title: "Fase 19 — across() em várias colunas",
+    desc: "Por rede: media de ideb e media de aprovacao usando across().",
+    template: ["ideb %>%\n  group_by(rede) %>%\n  summarise(\n    ", {slot:0}, "(c(ideb, aprovacao), ", {slot:1}, ")\n  )"],
+    answers: ["across","mean"],
+    bank: ["across","mean","summarise_at","apply","map","sum"],
+    hint: "across(c(col1, col2), funcao) aplica a mesma funcao em varias colunas.",
+    cols: ["rede","ideb","aprovacao"],
+    nRows: 4,
+    compute: () => jGroupSummarise(IDEB, "rede", vs => ({
+      ideb: +mean(vs.map(r => r.ideb)).toFixed(2),
+      aprovacao: +mean(vs.map(r => r.aprovacao)).toFixed(1)
+    }))
+  },
+
+  {
+    title: "Fase 20 — Pipeline completa (boss final)",
+    desc: "Para escolas com IDEB >= 5, agrupe por rede, calcule a media de IDEB e o nº de escolas, e ordene pela media desc.",
+    template: ["ideb %>%\n  ", {slot:0}, "(ideb >= 5) %>%\n  ",
+               {slot:1}, "(rede) %>%\n  ",
+               {slot:2}, "(\n    n = n(),\n    media_ideb = mean(ideb)\n  ) %>%\n  ",
+               {slot:3}, "(desc(media_ideb))"],
+    answers: ["filter","group_by","summarise","arrange"],
+    bank: ["filter","group_by","summarise","arrange","mutate","select","count","slice"],
+    hint: "Ordem canonica do dplyr: filter -> group_by -> summarise -> arrange.",
+    cols: ["rede","n","media_ideb"],
+    nRows: 4,
+    compute: () => jArrange(jGroupSummarise(
+      jFilter(IDEB, r => r.ideb >= 5), "rede", vs => ({
+        n: vs.length,
+        media_ideb: +mean(vs.map(r => r.ideb)).toFixed(2)
+      })
+    ), {key:"media_ideb",desc:true})
+  }
+];
+
+// =====================================================================
+// RENDERIZAÇÃO DA TABELA-ALVO (estilo tibble do console R)
+// =====================================================================
+function renderTable(data, cols, fase) {
+  if (!data || data.length === 0) return '<em style="color:#999;">(tibble vazio)</em>';
+  const head = `<tr>${cols.map(c => {
+    const t = TIPOS[c] || "chr";
+    return `<th>${c}<span class="col-type">&lt;${t}&gt;</span></th>`;
+  }).join('')}</tr>`;
+  const rows = data.slice(0, fase.nRows).map(r =>
+    `<tr>${cols.map(c => {
+      const v = r[c];
+      if (v === undefined || v === null) return `<td><em>NA</em></td>`;
+      const isNum = typeof v === 'number';
+      const display = isNum ? (Number.isInteger(v) ? v : v.toFixed(v < 10 ? 2 : 1)) : String(v);
+      return `<td class="${isNum ? 'num' : ''}">${display}</td>`;
+    }).join('')}</tr>`).join('');
+  return `<table class="result-table"><thead>${head}</thead><tbody>${rows}</tbody></table>`;
+}
+
+// =====================================================================
+// ENGINE
+// =====================================================================
+const estado = {
+  fase: 0, pontos: 0, vidas: 3, tentativas: 0,
+  dicasUsadas: 0, errosTotais: 0, hintUsadaNaFase: false,
+  slotsFilled: []
+};
+
+function trocarTela(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function iniciarJogo() {
+  Object.assign(estado, {fase:0, pontos:0, vidas:3, tentativas:0, dicasUsadas:0, errosTotais:0});
+  document.getElementById('hud').style.display = 'flex';
+  trocarTela('screen-game');
+  carregarFase();
+}
+function reiniciarJogo() { iniciarJogo(); }
+
+function carregarFase() {
+  const f = FASES[estado.fase];
+  estado.slotsFilled = new Array(f.answers.length).fill(null);
+  estado.tentativas = 0;
+  estado.hintUsadaNaFase = false;
+
+  document.getElementById('hud-level').textContent = estado.fase + 1;
+  document.getElementById('hud-total').textContent = FASES.length;
+  document.getElementById('hud-score').textContent = estado.pontos;
+  document.getElementById('hud-lives').textContent = "♥".repeat(estado.vidas) + "♡".repeat(3 - estado.vidas);
+  document.getElementById('progress-fill').style.width = ((estado.fase) / FASES.length * 100) + '%';
+
+  document.getElementById('level-title').textContent = f.title;
+  document.getElementById('level-desc').textContent = f.desc;
+
+  const result = f.compute();
+  const meta = f.customMeta || `# Resultado esperado: ${result.length} linha(s) × ${f.cols.length} coluna(s) (mostrando ${Math.min(f.nRows, result.length)})`;
+  document.getElementById('table-meta').textContent = meta;
+  document.getElementById('target-table').innerHTML = renderTable(result, f.cols, f);
+
+  renderTemplate();
+  renderBank();
+
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('btn-check').style.display = '';
+  document.getElementById('btn-next').style.display = 'none';
+}
+
+function renderTemplate() {
+  const f = FASES[estado.fase];
+  const cont = document.getElementById('code-template');
+  cont.innerHTML = '';
+  f.template.forEach(piece => {
+    if (typeof piece === 'string') {
+      const span = document.createElement('span');
+      span.textContent = piece;       // texto puro, sem highlighting
+      cont.appendChild(span);
+    } else {
+      const slot = document.createElement('span');
+      slot.className = 'slot';
+      slot.dataset.slotIdx = piece.slot;
+      slot.textContent = '___';
+      if (estado.slotsFilled[piece.slot]) {
+        slot.classList.add('filled');
+        slot.textContent = estado.slotsFilled[piece.slot];
+      }
+      slot.addEventListener('dragover', e => { e.preventDefault(); slot.classList.add('over'); });
+      slot.addEventListener('dragleave', () => slot.classList.remove('over'));
+      slot.addEventListener('drop', e => {
+        e.preventDefault();
+        slot.classList.remove('over');
+        const val = e.dataTransfer.getData('text/plain');
+        if (!val) return;
+        estado.slotsFilled[piece.slot] = val;
+        renderTemplate(); renderBank();
+      });
+      slot.addEventListener('click', () => {
+        if (estado.slotsFilled[piece.slot]) {
+          estado.slotsFilled[piece.slot] = null;
+          renderTemplate(); renderBank();
+        }
+      });
+      cont.appendChild(slot);
+    }
+  });
+}
+
+function renderBank() {
+  const f = FASES[estado.fase];
+  const bank = document.getElementById('block-bank');
+  bank.innerHTML = '';
+  const usados = {};
+  estado.slotsFilled.forEach(v => { if (v) usados[v] = (usados[v]||0) + 1; });
+  const embaralhado = f.bank.slice();
+  const r = rng(estado.fase * 37 + 1);
+  for (let i = embaralhado.length-1; i>0; i--) {
+    const j = Math.floor(r()*(i+1));
+    [embaralhado[i], embaralhado[j]] = [embaralhado[j], embaralhado[i]];
+  }
+  embaralhado.forEach(b => {
+    const el = document.createElement('div');
+    el.className = 'block';
+    if (usados[b]) el.classList.add('used');
+    el.textContent = b;
+    el.draggable = true;
+    el.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', b); el.classList.add('dragging'); });
+    el.addEventListener('dragend', () => el.classList.remove('dragging'));
+    bank.appendChild(el);
+  });
+}
+
+function verificar() {
+  const f = FASES[estado.fase];
+  if (estado.slotsFilled.some(v => v === null)) {
+    mostrarFeedback('error', 'Preencha todos os slots antes de verificar.', 'error');
+    return;
+  }
+  const errados = [];
+  f.answers.forEach((ans, i) => { if (estado.slotsFilled[i] !== ans) errados.push(i); });
+
+  document.querySelectorAll('.slot').forEach(s => {
+    const idx = parseInt(s.dataset.slotIdx);
+    s.classList.remove('correct','wrong');
+    if (errados.includes(idx)) s.classList.add('wrong');
+    else if (estado.slotsFilled[idx]) s.classList.add('correct');
+  });
+
+  if (errados.length === 0) {
+    let ganho = 100;
+    if (estado.tentativas === 1) ganho = 60;
+    else if (estado.tentativas >= 2) ganho = 30;
+    if (estado.hintUsadaNaFase) ganho = Math.max(10, ganho - 30);
+    estado.pontos += ganho;
+    document.getElementById('hud-score').textContent = estado.pontos;
+    mostrarFeedback('success',
+      `Acertou! +${ganho} pontos. ` + (estado.fase < FASES.length-1 ? 'Próxima fase liberada.' : 'Você terminou todas as fases.'),
+      'check_circle');
+    document.getElementById('btn-check').style.display = 'none';
+    document.getElementById('btn-next').style.display = '';
+    document.getElementById('progress-fill').style.width = ((estado.fase+1) / FASES.length * 100) + '%';
+    confetti();
+  } else {
+    estado.tentativas++;
+    estado.errosTotais++;
+    estado.vidas--;
+    document.getElementById('hud-lives').textContent = "♥".repeat(Math.max(0,estado.vidas)) + "♡".repeat(3-Math.max(0,estado.vidas));
+    const dirPanel = document.querySelectorAll('.panel-game')[1];
+    if (dirPanel) { dirPanel.classList.add('shake'); setTimeout(()=>dirPanel.classList.remove('shake'), 400); }
+    if (estado.vidas <= 0) {
+      mostrarFeedback('error', `Sem vidas. Resposta correta: ${f.answers.join(', ')}. Avançando...`, 'error');
+      document.getElementById('btn-check').style.display = 'none';
+      document.getElementById('btn-next').style.display = '';
+      estado.vidas = 1;
+    } else {
+      mostrarFeedback('error', `${errados.length} slot(s) incorreto(s). Tente de novo.`, 'cancel');
+    }
+  }
+}
+
+function mostrarFeedback(tipo, msg, icone) {
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback show ' + tipo;
+  document.getElementById('feedback-icon').textContent = icone || 'info';
+  document.getElementById('feedback-msg').textContent = msg;
+}
+
+function usarDica() {
+  if (estado.hintUsadaNaFase) { mostrarFeedback('hint', 'Você já usou a dica desta fase.', 'lightbulb'); return; }
+  estado.hintUsadaNaFase = true;
+  estado.dicasUsadas++;
+  estado.pontos = Math.max(0, estado.pontos - 30);
+  document.getElementById('hud-score').textContent = estado.pontos;
+  mostrarFeedback('hint', FASES[estado.fase].hint, 'lightbulb');
+}
+
+function reiniciarFase() {
+  estado.slotsFilled = new Array(FASES[estado.fase].answers.length).fill(null);
+  renderTemplate(); renderBank();
+  document.getElementById('feedback').className = 'feedback';
+}
+
+function proximaFase() {
+  estado.fase++;
+  if (estado.fase >= FASES.length) mostrarFim();
+  else carregarFase();
+}
+
+function mostrarFim() {
+  document.getElementById('hud').style.display = 'none';
+  document.getElementById('end-score').textContent = estado.pontos;
+  document.getElementById('end-level').textContent = FASES.length;
+  document.getElementById('end-hints').textContent = estado.dicasUsadas;
+  document.getElementById('end-errors').textContent = estado.errosTotais;
+  const maxPts = FASES.length * 100;
+  const pct = estado.pontos / maxPts;
+  let stars = '⭐', titulo = 'Bom começo';
+  let msg = 'Você completou todas as fases. Que tal jogar de novo para melhorar a pontuação?';
+  if (pct >= 0.85) { stars = '⭐⭐⭐'; titulo = 'Mestre do dplyr'; msg = 'Pontuação excelente. Você domina o tidyverse.'; }
+  else if (pct >= 0.6) { stars = '⭐⭐'; titulo = 'Muito bem'; msg = 'Você foi bem. Revise as fases em que errou para subir de nível.'; }
+  document.getElementById('end-title').textContent = titulo;
+  document.getElementById('end-msg').textContent = msg;
+  document.getElementById('end-stars').textContent = stars;
+  trocarTela('screen-end');
+  confetti();
+}
+
+function confetti() {
+  const c = document.getElementById('confetti');
+  c.style.display = 'block';
+  c.width = window.innerWidth; c.height = window.innerHeight;
+  const ctx = c.getContext('2d');
+  const peças = [];
+  const cores = ['#1976d2', '#d32f2f', '#2e7d32', '#ed6c02', '#7b1fa2'];
+  for (let i=0; i<70; i++) {
+    peças.push({ x: Math.random()*c.width, y: -20 - Math.random()*200,
+      vx: (Math.random()-0.5)*3, vy: 2 + Math.random()*3,
+      cor: cores[Math.floor(Math.random()*cores.length)],
+      size: 6 + Math.random()*8, rot: Math.random()*Math.PI*2,
+      vr: (Math.random()-0.5)*0.3 });
+  }
+  let frames = 0;
+  function animar() {
+    ctx.clearRect(0,0,c.width,c.height);
+    peças.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.cor; ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+      ctx.restore();
+    });
+    frames++;
+    if (frames < 140) requestAnimationFrame(animar);
+    else { c.style.display = 'none'; ctx.clearRect(0,0,c.width,c.height); }
+  }
+  animar();
+}
+</script>
+</body>
+</html>

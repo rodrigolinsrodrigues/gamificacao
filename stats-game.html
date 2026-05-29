@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>stats Quest · IDEB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500;700&family=Source+Serif+Pro:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary:        #1976d2;
+    --primary-dark:   #1565c0;
+    --primary-light:  #42a5f5;
+    --theory:         #2e7d32;      /* verde — estatística */
+    --theory-soft:    #e8f5e9;
+    --error:          #d32f2f;
+    --warning:        #ed6c02;
+    --success:        #2e7d32;
+    --bg:             #f5f5f5;
+    --paper:          #ffffff;
+    --surface-2:      #fafafa;
+    --divider:        rgba(0,0,0,0.12);
+    --text-primary:   rgba(0,0,0,0.87);
+    --text-secondary: rgba(0,0,0,0.6);
+    --on-primary:     #ffffff;
+    --e1: 0 2px 1px -1px rgba(0,0,0,0.2), 0 1px 1px 0 rgba(0,0,0,0.14), 0 1px 3px 0 rgba(0,0,0,0.12);
+    --e2: 0 3px 1px -2px rgba(0,0,0,0.2), 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12);
+    --e4: 0 2px 4px -1px rgba(0,0,0,0.2), 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12);
+  }
+  body {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg); color: var(--text-primary);
+    min-height: 100vh; -webkit-font-smoothing: antialiased; line-height: 1.5;
+  }
+
+  .appbar {
+    background: var(--primary); color: var(--on-primary);
+    box-shadow: var(--e4); position: sticky; top: 0; z-index: 100;
+    padding: 0 24px; display: flex; align-items: center; justify-content: space-between;
+    min-height: 64px;
+  }
+  .appbar-brand { display: inline-flex; align-items: center; margin-right: 16px; text-decoration: none; }
+  .appbar-brand img { height: 36px; display: block; border-radius: 8px; background: white; padding: 2px; transition: transform 0.2s; }
+  .appbar-brand:hover img { transform: scale(1.04); }
+  .appbar-left { display: flex; align-items: center; }
+  .appbar-title { display: flex; align-items: center; gap: 12px; font-size: 20px; font-weight: 500; letter-spacing: 0.0075em; }
+  .appbar-title .material-icons { font-size: 28px; }
+  .appbar-title .sub { font-size: 12px; font-weight: 400; opacity: 0.85; margin-left: 8px; }
+  .hud { display: flex; gap: 8px; align-items: center; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.16); color: var(--on-primary); padding: 6px 12px; border-radius: 16px; font-size: 13px; font-weight: 500; }
+  .chip .material-icons { font-size: 18px; }
+  .chip-progress { background: rgba(255,255,255,0.16); width: 140px; height: 4px; border-radius: 2px; overflow: hidden; margin-left: 8px; }
+  .chip-progress > div { height: 100%; background: var(--on-primary); width: 0%; transition: width 0.4s; }
+
+  .screen { display: none; padding: 32px 24px 64px; }
+  .screen.active { display: block; }
+
+  #screen-start {
+    text-align: center; padding-top: 80px; min-height: 85vh;
+    display: none; flex-direction: column; align-items: center;
+  }
+  #screen-start.active { display: flex; }
+  #screen-start h1 { font-size: 60px; font-weight: 300; letter-spacing: -0.5px; color: var(--text-primary); margin-bottom: 16px; }
+  #screen-start h1 .accent { color: var(--primary); font-weight: 500; }
+  #screen-start .lead { font-size: 16px; color: var(--text-secondary); max-width: 660px; margin: 0 auto 8px; line-height: 1.6; }
+  #screen-start .lead code { background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px; font-family: 'Roboto Mono', monospace; font-size: 13px; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px; border: none; cursor: pointer; font-family: inherit;
+    font-weight: 500; font-size: 14px; letter-spacing: 0.02857em;
+    text-transform: uppercase; padding: 8px 22px; min-height: 36px;
+    border-radius: 4px; transition: all 0.2s;
+    position: relative; overflow: hidden; user-select: none;
+  }
+  .btn .material-icons { font-size: 18px; }
+  .btn-contained { background: var(--primary); color: var(--on-primary); box-shadow: var(--e2); }
+  .btn-contained:hover { background: var(--primary-dark); box-shadow: var(--e4); }
+  .btn-text { background: transparent; color: var(--primary); padding: 6px 16px; }
+  .btn-text:hover { background: rgba(25,118,210,0.08); }
+  .btn-fab { margin-top: 40px; padding: 14px 40px; font-size: 15px; min-height: 48px; border-radius: 8px; }
+  .btn::after {
+    content: ''; position: absolute; top: 50%; left: 50%;
+    width: 0; height: 0; border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease;
+    pointer-events: none;
+  }
+  .btn-text::after { background: rgba(25,118,210,0.2); }
+  .btn:active::after { width: 220%; height: 220%; transition: 0s; }
+
+  .card { background: var(--paper); border-radius: 8px; box-shadow: var(--e1); padding: 24px; }
+  .card-feature { background: var(--paper); border-radius: 8px; box-shadow: var(--e1); padding: 28px; text-align: left; }
+  .feature-icon {
+    width: 48px; height: 48px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: rgba(46,125,50,0.12); color: var(--theory); margin-bottom: 16px;
+  }
+  .feature-icon .material-icons { font-size: 28px; }
+  .card-feature h3 { font-size: 18px; font-weight: 500; margin-bottom: 8px; color: var(--text-primary); }
+  .card-feature p { font-size: 14px; color: var(--text-secondary); line-height: 1.55; }
+  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 56px; max-width: 960px; width: 100%; }
+
+  .game-grid { display: grid; grid-template-columns: 1fr 1.05fr; gap: 24px; max-width: 1480px; margin: 0 auto; }
+  .panel-title {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 500; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-secondary); margin-bottom: 16px;
+  }
+  .panel-title .material-icons { font-size: 18px; color: var(--primary); }
+  .level-title { font-size: 22px; font-weight: 500; color: var(--text-primary); margin-bottom: 4px; }
+  .level-desc { color: var(--text-secondary); font-size: 14px; line-height: 1.55; margin-bottom: 20px; }
+
+  /* Theory card (verde) */
+  .theory-card {
+    background: var(--theory-soft);
+    border-left: 4px solid var(--theory);
+    border-radius: 4px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+  }
+  .theory-head {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--theory);
+    margin-bottom: 10px;
+  }
+  .theory-head .material-icons { font-size: 18px; }
+  .theory-title { font-size: 16px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px; }
+  .theory-text { font-size: 14px; color: var(--text-primary); line-height: 1.6; margin-bottom: 12px; }
+  .theory-text strong { color: var(--theory); font-weight: 500; }
+
+  .formula {
+    background: #fff;
+    border: 1px solid rgba(46,125,50,0.2);
+    border-radius: 4px;
+    padding: 14px 18px;
+    text-align: center;
+    font-family: 'Source Serif Pro', Georgia, serif;
+    font-size: 18px; font-style: italic;
+    color: var(--text-primary);
+    margin: 8px 0 12px;
+    letter-spacing: 0.5px;
+  }
+  .formula .var-sub { font-size: 11px; vertical-align: sub; font-style: normal; }
+  .formula .var-sup { font-size: 11px; vertical-align: super; font-style: normal; }
+
+  .theory-note {
+    font-size: 13px; color: var(--text-secondary);
+    line-height: 1.55;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(46,125,50,0.2);
+  }
+
+  .expected {
+    margin-top: 8px; padding: 12px 16px;
+    background: var(--surface-2); border-radius: 4px;
+    border-left: 3px solid var(--success);
+  }
+  .expected-title {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-secondary); font-weight: 600; margin-bottom: 6px;
+  }
+  .expected-content {
+    font-family: 'Roboto Mono', monospace; font-size: 12.5px;
+    color: var(--text-primary); white-space: pre-wrap;
+    line-height: 1.6;
+  }
+
+  .code-block {
+    background: #fafafa; color: #212121;
+    padding: 20px 22px; border-radius: 4px;
+    border: 1px solid var(--divider);
+    font-family: 'Roboto Mono', 'SF Mono', 'Monaco', monospace;
+    font-size: 14px; line-height: 2.0;
+    white-space: pre-wrap;
+    margin-bottom: 20px; min-height: 130px;
+  }
+  .slot {
+    display: inline-block; min-width: 96px;
+    padding: 3px 12px; margin: 0 3px;
+    background: #fff; border: 1.5px dashed #9e9e9e;
+    border-radius: 4px; color: #9e9e9e;
+    text-align: center; font-style: italic;
+    font-family: 'Roboto Mono', monospace;
+    vertical-align: middle; transition: all 0.15s;
+  }
+  .slot.over    { background: rgba(25,118,210,0.08); border-color: var(--primary); border-style: solid; }
+  .slot.filled  { background: rgba(25,118,210,0.08); border: 1.5px solid var(--primary); color: var(--primary-dark); font-style: normal; font-weight: 500; cursor: pointer; }
+  .slot.wrong   { background: rgba(211,47,47,0.08); border: 1.5px solid var(--error); color: var(--error); }
+  .slot.correct { background: rgba(46,125,50,0.08); border: 1.5px solid var(--success); color: var(--success); }
+
+  .bank-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); margin-bottom: 12px; font-weight: 500; }
+  .bank {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    min-height: 88px; padding: 16px;
+    background: var(--surface-2); border-radius: 4px; border: 1px solid var(--divider);
+  }
+  .block {
+    display: inline-flex; align-items: center; padding: 8px 14px;
+    background: var(--paper); color: var(--text-primary);
+    border: 1px solid var(--divider); border-radius: 16px;
+    font-family: 'Roboto Mono', monospace; font-size: 13px; font-weight: 500;
+    cursor: grab; user-select: none;
+    transition: all 0.15s; box-shadow: var(--e1);
+  }
+  .block:hover { background: var(--surface-2); box-shadow: var(--e2); transform: translateY(-1px); }
+  .block:active { cursor: grabbing; }
+  .block.dragging { opacity: 0.4; }
+  .block.used { display: none; }
+
+  .actions { display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; justify-content: flex-end; }
+
+  .feedback {
+    margin-top: 16px; padding: 12px 16px; border-radius: 4px;
+    font-size: 14px; line-height: 1.5;
+    border-left: 4px solid; display: none; align-items: flex-start; gap: 10px;
+  }
+  .feedback.show { display: flex; }
+  .feedback.success { background: #edf7ed; color: #1e4620; border-color: var(--success); }
+  .feedback.error   { background: #fdecea; color: #5f2120; border-color: var(--error); }
+  .feedback.hint    { background: #fff4e5; color: #663c00; border-color: var(--warning); }
+  .feedback .material-icons { font-size: 22px; }
+  .feedback.success .material-icons { color: var(--success); }
+  .feedback.error .material-icons   { color: var(--error); }
+  .feedback.hint .material-icons    { color: var(--warning); }
+
+  #screen-end { text-align: center; padding-top: 80px; min-height: 80vh; }
+  #screen-end h1 { font-size: 48px; font-weight: 300; color: var(--text-primary); margin-bottom: 12px; letter-spacing: -0.5px; }
+  #screen-end .end-sub { font-size: 16px; color: var(--text-secondary); max-width: 560px; margin: 0 auto; }
+  .final-score-card { background: var(--paper); border-radius: 8px; box-shadow: var(--e2); padding: 32px; margin: 32px auto; max-width: 480px; }
+  .final-score { font-size: 72px; font-weight: 300; color: var(--primary); margin: 8px 0; letter-spacing: -2px; }
+  .stars { font-size: 36px; margin: 8px 0 16px; letter-spacing: 10px; }
+  .final-stats { display: flex; justify-content: center; gap: 56px; flex-wrap: wrap; }
+  .final-stat .v { font-size: 28px; font-weight: 500; color: var(--text-primary); }
+  .final-stat .l { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .card, .panel-game { animation: fadeIn 0.3s ease; }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  .shake { animation: shake 0.35s; }
+  #confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 200; display: none; }
+
+  @media (max-width: 960px) {
+    .game-grid { grid-template-columns: 1fr; }
+    .features-grid { grid-template-columns: 1fr; }
+    .hud .chip-progress { display: none; }
+    #screen-start h1 { font-size: 40px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="appbar">
+  <div class="appbar-left">
+    <a href="index.html" class="appbar-brand" title="Voltar ao portal Evante">
+      <img src="Evante-01.jpg" alt="Evante" />
+    </a>
+    <div class="appbar-title">
+      <span class="material-icons">analytics</span>
+      stats Quest <span class="sub">· IDEB</span>
+    </div>
+  </div>
+  <div class="hud" id="hud" style="display:none;">
+    <div class="chip"><span class="material-icons">flag</span><span id="hud-level">1</span>/<span id="hud-total">20</span></div>
+    <div class="chip-progress"><div id="progress-fill"></div></div>
+    <div class="chip"><span class="material-icons">stars</span><span id="hud-score">0</span></div>
+    <div class="chip"><span class="material-icons">favorite</span><span id="hud-lives">3</span></div>
+  </div>
+</header>
+
+<section id="screen-start" class="screen active">
+  <h1>stats <span class="accent">Quest</span></h1>
+  <p class="lead">Aprenda <strong>estatística descritiva e exploratória</strong> em R integrando teoria e prática.</p>
+  <p class="lead">20 fases sobre medidas de tendência central, dispersão, forma, correlação e visualização exploratória, com o dataset <code>ideb</code>.</p>
+
+  <button class="btn btn-contained btn-fab" onclick="iniciarJogo()">
+    <span class="material-icons">play_arrow</span>Começar
+  </button>
+
+  <div class="features-grid">
+    <div class="card-feature">
+      <div class="feature-icon"><span class="material-icons">functions</span></div>
+      <h3>Estude a teoria</h3>
+      <p>Cada fase traz a fórmula matemática e a interpretação da medida estatística.</p>
+    </div>
+    <div class="card-feature">
+      <div class="feature-icon"><span class="material-icons">code</span></div>
+      <h3>Aplique em R</h3>
+      <p>Encaixe funções (<code>mean</code>, <code>sd</code>, <code>quantile</code>, <code>hist</code>...) sobre o dataset IDEB.</p>
+    </div>
+    <div class="card-feature">
+      <div class="feature-icon"><span class="material-icons">trending_up</span></div>
+      <h3>Progrida</h3>
+      <p>Tendência central → dispersão → forma → correlação → visualização.</p>
+    </div>
+  </div>
+</section>
+
+<section id="screen-game" class="screen">
+  <div class="game-grid">
+    <div class="card panel-game">
+      <div class="panel-title"><span class="material-icons">menu_book</span>Conceito</div>
+      <div class="level-title" id="level-title">Fase 1</div>
+      <div class="level-desc" id="level-desc"></div>
+
+      <div class="theory-card">
+        <div class="theory-head"><span class="material-icons">functions</span><span id="theory-tag">Teoria</span></div>
+        <div class="theory-title" id="theory-title"></div>
+        <div class="theory-text" id="theory-text"></div>
+        <div class="formula" id="theory-formula"></div>
+        <div class="theory-note" id="theory-note"></div>
+      </div>
+
+      <div class="expected">
+        <div class="expected-title">Resultado esperado em R</div>
+        <div class="expected-content" id="expected-content"></div>
+      </div>
+    </div>
+
+    <div class="card panel-game">
+      <div class="panel-title"><span class="material-icons">terminal</span>Monte o código R</div>
+      <div class="code-block" id="code-template"></div>
+
+      <div class="bank-title">Blocos disponíveis · arraste para os slots</div>
+      <div class="bank" id="block-bank"></div>
+
+      <div class="feedback" id="feedback">
+        <span class="material-icons" id="feedback-icon">info</span>
+        <span id="feedback-msg"></span>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-text" onclick="usarDica()"><span class="material-icons">lightbulb</span>Dica · -30</button>
+        <button class="btn btn-text" onclick="reiniciarFase()"><span class="material-icons">refresh</span>Reiniciar</button>
+        <button class="btn btn-contained" id="btn-check" onclick="verificar()"><span class="material-icons">check_circle</span>Verificar</button>
+        <button class="btn btn-contained" id="btn-next" onclick="proximaFase()" style="display:none;">Próxima<span class="material-icons">arrow_forward</span></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="screen-end" class="screen">
+  <h1 id="end-title">Parabéns</h1>
+  <p class="end-sub" id="end-msg">Você completou todas as fases.</p>
+  <div class="final-score-card">
+    <div class="stars" id="end-stars">⭐⭐⭐</div>
+    <div class="final-score" id="end-score">0</div>
+    <div class="final-stats">
+      <div class="final-stat"><div class="v" id="end-level">20</div><div class="l">Fases</div></div>
+      <div class="final-stat"><div class="v" id="end-hints">0</div><div class="l">Dicas</div></div>
+      <div class="final-stat"><div class="v" id="end-errors">0</div><div class="l">Erros</div></div>
+    </div>
+  </div>
+  <button class="btn btn-contained btn-fab" onclick="reiniciarJogo()">
+    <span class="material-icons">replay</span>Jogar de novo
+  </button>
+</section>
+
+<canvas id="confetti"></canvas>
+
+<script>
+// =====================================================================
+// 20 FASES — Estatística descritiva e exploratória
+// =====================================================================
+const FASES = [
+  // -------------------- BLOCO 1: TENDÊNCIA CENTRAL --------------------
+  {
+    title: "Fase 1 — Média aritmética",
+    desc: "Calcule a nota IDEB média entre todas as escolas.",
+    theory: {
+      tag: "Tendência central",
+      title: "Média aritmética",
+      text: "A medida mais conhecida do centro de uma distribuição. Soma todas as observações e divide pelo total de elementos.",
+      formula: "x̄ = (1/n) · Σ x<span class='var-sub'>i</span>",
+      note: "Sensível a valores extremos (outliers). Em R, mean() ignora NA com o argumento na.rm = TRUE."
+    },
+    expected: "[1] 5.124",
+    template: [{slot:0}, "(ideb$ideb)"],
+    answers: ["mean"],
+    bank: ["mean", "median", "mode", "sum", "avg", "average"],
+    hint: "A função base R para média aritmética é mean(). Atenção: R não tem mode() pra moda estatística!"
+  },
+
+  {
+    title: "Fase 2 — Mediana",
+    desc: "Encontre a mediana do IDEB, mais robusta a outliers que a média.",
+    theory: {
+      tag: "Tendência central",
+      title: "Mediana",
+      text: "O <strong>valor central</strong> da amostra ordenada. Se n for par, é a média dos dois valores centrais. Não é afetada por valores extremos.",
+      formula: "Md = x<span class='var-sub'>(n+1)/2</span> se n ímpar; (x<span class='var-sub'>n/2</span> + x<span class='var-sub'>n/2+1</span>) / 2 se n par",
+      note: "Quando a distribuição é simétrica, média ≈ mediana. Diferença grande sugere assimetria."
+    },
+    expected: "[1] 5.05",
+    template: [{slot:0}, "(ideb$ideb)"],
+    answers: ["median"],
+    bank: ["median", "mean", "quantile", "midpoint", "med", "fivenum"],
+    hint: "median() devolve diretamente. quantile(x, 0.5) também daria o mesmo resultado."
+  },
+
+  {
+    title: "Fase 3 — Moda (R não tem nativa)",
+    desc: "Encontre a categoria de 'rede' que mais aparece. A moda é obtida por table() + which.max().",
+    theory: {
+      tag: "Tendência central",
+      title: "Moda",
+      text: "Valor mais frequente. Para variáveis categóricas é a única medida de centro aplicável. R <strong>não tem função pronta</strong> — combinamos table() (frequências) com which.max() (posição do máximo).",
+      formula: "Mo = arg max<span class='var-sub'>x</span> f(x)",
+      note: "names(which.max(table(x))) devolve a moda como string. Para muitos casos, table() já mostra visualmente."
+    },
+    expected: '[1] "Municipal"',
+    template: ["names(", {slot:0}, "(table(ideb$rede)))"],
+    answers: ["which.max"],
+    bank: ["which.max", "max", "which.min", "max.col", "argmax", "top"],
+    hint: "which.max() retorna o ÍNDICE do maior valor — daí precisamos do names() para pegar a string da categoria."
+  },
+
+  {
+    title: "Fase 4 — Média truncada",
+    desc: "Calcule a média descartando 10% das observações de cada extremo (mais robusta a outliers).",
+    theory: {
+      tag: "Tendência central",
+      title: "Média aparada (trimmed mean)",
+      text: "Versão robusta da média: remove uma proporção α das observações nos dois extremos antes de calcular. Reduz a influência de outliers.",
+      formula: "x̄<span class='var-sub'>α</span> = (1/(n−2k)) · Σ<span class='var-sub'>i=k+1</span><span class='var-sup'>n−k</span> x<span class='var-sub'>(i)</span>",
+      note: "Em R, basta passar o argumento trim. trim = 0.1 corta 10% de cada lado (total 20%)."
+    },
+    expected: "[1] 5.118",
+    template: ["mean(ideb$ideb, ", {slot:0}, " = 0.1)"],
+    answers: ["trim"],
+    bank: ["trim", "trunc", "alpha", "robust", "cut", "winsorize"],
+    hint: "O argumento de mean() para média truncada é trim (proporção a remover de cada extremo)."
+  },
+
+  // -------------------- BLOCO 2: DISPERSÃO --------------------
+  {
+    title: "Fase 5 — Variância amostral",
+    desc: "Mede o quanto os IDEBs variam em torno da média.",
+    theory: {
+      tag: "Dispersão",
+      title: "Variância",
+      text: "Soma dos desvios quadrados em relação à média, dividida por n−1 (correção de Bessel para amostras).",
+      formula: "s² = (1/(n−1)) · Σ (x<span class='var-sub'>i</span> − x̄)²",
+      note: "Em R, var() usa n−1 no denominador (amostral). A unidade é o QUADRADO da unidade da variável — difícil de interpretar."
+    },
+    expected: "[1] 1.521",
+    template: [{slot:0}, "(ideb$ideb)"],
+    answers: ["var"],
+    bank: ["var", "sd", "variance", "mean", "diff", "cov"],
+    hint: "var() já usa o denominador n−1 (variância amostral). Para variância populacional (n), faça var()*(n-1)/n."
+  },
+
+  {
+    title: "Fase 6 — Desvio padrão",
+    desc: "Raiz quadrada da variância — fica na mesma unidade dos dados.",
+    theory: {
+      tag: "Dispersão",
+      title: "Desvio padrão",
+      text: "Medida de dispersão mais usada por estar na <strong>mesma unidade</strong> dos dados. Indica o 'tamanho típico' do desvio em relação à média.",
+      formula: "s = √s² = √((1/(n−1)) · Σ(x<span class='var-sub'>i</span> − x̄)²)",
+      note: "Em distribuições aproximadamente normais, ~68% dos dados ficam em x̄ ± s e ~95% em x̄ ± 2s."
+    },
+    expected: "[1] 1.233",
+    template: [{slot:0}, "(ideb$ideb)"],
+    answers: ["sd"],
+    bank: ["sd", "var", "stdev", "std", "deviation", "rmse"],
+    hint: "sd() = standard deviation. Equivale a sqrt(var(x))."
+  },
+
+  {
+    title: "Fase 7 — Amplitude (range)",
+    desc: "Pegue o intervalo entre mínimo e máximo do IDEB.",
+    theory: {
+      tag: "Dispersão",
+      title: "Amplitude",
+      text: "Diferença entre o maior e o menor valor. Medida mais simples de dispersão, porém muito sensível a outliers (depende só de 2 pontos).",
+      formula: "R = x<span class='var-sub'>max</span> − x<span class='var-sub'>min</span>",
+      note: "range(x) em R devolve um vetor c(min, max). Para o valor da amplitude, faça diff(range(x))."
+    },
+    expected: "[1] 1.6 8.9",
+    template: [{slot:0}, "(ideb$ideb)"],
+    answers: ["range"],
+    bank: ["range", "diff", "extendrange", "rng", "interval", "minmax"],
+    hint: "range() devolve c(min, max). Para o NÚMERO da amplitude (max-min), use diff(range(x))."
+  },
+
+  {
+    title: "Fase 8 — Intervalo interquartil (IQR)",
+    desc: "Calcule a dispersão dos 50% centrais (Q3 − Q1).",
+    theory: {
+      tag: "Dispersão",
+      title: "IQR — Interquartile Range",
+      text: "Amplitude dos 50% centrais da distribuição. Robusto a outliers — base para identificar valores discrepantes no boxplot.",
+      formula: "IQR = Q<span class='var-sub'>3</span> − Q<span class='var-sub'>1</span>",
+      note: "Regra do boxplot: outliers são pontos fora de [Q1 − 1.5·IQR, Q3 + 1.5·IQR]."
+    },
+    expected: "[1] 1.8",
+    template: [{slot:0}, "(ideb$ideb)"],
+    answers: ["IQR"],
+    bank: ["IQR", "quantile", "fivenum", "range", "interquartile", "Q"],
+    hint: "Cuidado com maiúsculas: a função se chama IQR() (tudo maiúsculo, não Iqr nem iqr)."
+  },
+
+  {
+    title: "Fase 9 — Quantis específicos",
+    desc: "Calcule os percentis 10%, 50% e 90% do IDEB.",
+    theory: {
+      tag: "Dispersão",
+      title: "Quantis",
+      text: "Pontos que dividem a distribuição em proporções específicas. <strong>Quartis</strong> dividem em 4 partes iguais (25%, 50%, 75%), <strong>percentis</strong> em 100.",
+      formula: "Q(p) = inf { x : F(x) ≥ p }",
+      note: "quantile(x, probs = c(0.1, 0.5, 0.9)) devolve um vetor nomeado com os quantis solicitados."
+    },
+    expected: "  10%   50%   90%\n3.620 5.050 6.788",
+    template: [{slot:0}, "(ideb$ideb, probs = c(0.1, 0.5, 0.9))"],
+    answers: ["quantile"],
+    bank: ["quantile", "percentile", "fivenum", "IQR", "summary", "median"],
+    hint: "quantile() aceita qualquer probabilidade entre 0 e 1 via probs = c(...)."
+  },
+
+  // -------------------- BLOCO 3: RESUMOS --------------------
+  {
+    title: "Fase 10 — Resumo de 6 números",
+    desc: "Obtenha o resumo padrão (mínimo, Q1, mediana, média, Q3, máximo).",
+    theory: {
+      tag: "Resumos",
+      title: "summary()",
+      text: "Função genérica do R que devolve as <strong>seis estatísticas</strong> mais úteis para inspecionar uma variável numérica. Para fatores, devolve a contagem por nível.",
+      formula: "Min · Q1 · Mediana · Média · Q3 · Máx",
+      note: "Diferente da maioria das linguagens, summary() funciona em data.frames inteiros e adapta-se ao tipo de cada coluna."
+    },
+    expected: "  Min. 1st Qu.  Median    Mean 3rd Qu.    Max.\n 1.600   4.200   5.050   5.124   6.000   8.900",
+    template: [{slot:0}, "(ideb$ideb)"],
+    answers: ["summary"],
+    bank: ["summary", "fivenum", "describe", "stat.desc", "str", "head"],
+    hint: "summary() é a porta de entrada da análise exploratória — funciona em vetores, fatores e data.frames."
+  },
+
+  {
+    title: "Fase 11 — Cinco números de Tukey",
+    desc: "Obtenha os 5 números (min, Q1, mediana, Q3, max) sem a média.",
+    theory: {
+      tag: "Resumos",
+      title: "fivenum() — Tukey's five",
+      text: "Versão sem a média do resumo: <strong>min, Q1 (lower hinge), mediana, Q3 (upper hinge), max</strong>. É a base do boxplot.",
+      formula: "(x<span class='var-sub'>min</span>, h<span class='var-sub'>L</span>, Md, h<span class='var-sub'>U</span>, x<span class='var-sub'>max</span>)",
+      note: "Os 'hinges' de Tukey diferem ligeiramente dos quartis amostrais clássicos — daí podem não coincidir com quantile() em N pequenos."
+    },
+    expected: "[1] 1.60 4.20 5.05 6.00 8.90",
+    template: [{slot:0}, "(ideb$ideb)"],
+    answers: ["fivenum"],
+    bank: ["fivenum", "summary", "quantile", "IQR", "boxplot.stats", "tukey"],
+    hint: "fivenum() é a base do boxplot. Devolve um vetor sem nomes (só os 5 valores)."
+  },
+
+  {
+    title: "Fase 12 — Frequência absoluta (table)",
+    desc: "Conte quantas escolas existem em cada rede.",
+    theory: {
+      tag: "Resumos",
+      title: "Tabela de frequências",
+      text: "Para variáveis <strong>categóricas</strong>, table() devolve a contagem por nível — base de qualquer análise descritiva qualitativa.",
+      formula: "n<span class='var-sub'>k</span> = #{ i : x<span class='var-sub'>i</span> = c<span class='var-sub'>k</span> }",
+      note: "table(x, y) faz tabela de contingência cruzada. table() também ignora NA por padrão (use useNA = 'always' para incluir)."
+    },
+    expected: "  Estadual    Federal Municipal   Privada\n        58         12        80        50",
+    template: [{slot:0}, "(ideb$rede)"],
+    answers: ["table"],
+    bank: ["table", "count", "tabulate", "summary", "freq", "xtabs"],
+    hint: "table() é o equivalente de COUNT(*) GROUP BY do SQL para variáveis categóricas."
+  },
+
+  {
+    title: "Fase 13 — Frequência relativa (proporção)",
+    desc: "Calcule a proporção de escolas por rede.",
+    theory: {
+      tag: "Resumos",
+      title: "Frequência relativa",
+      text: "Razão entre frequência absoluta e total — varia entre 0 e 1, somando 1.",
+      formula: "f<span class='var-sub'>k</span> = n<span class='var-sub'>k</span> / n · (com Σ f<span class='var-sub'>k</span> = 1)",
+      note: "prop.table() de uma table devolve as proporções. Em tabelas de contingência, prop.table(t, margin = 1) faz proporção por linha."
+    },
+    expected: "  Estadual    Federal Municipal   Privada\n     0.290      0.060     0.400     0.250",
+    template: [{slot:0}, "(table(ideb$rede))"],
+    answers: ["prop.table"],
+    bank: ["prop.table", "proportions", "table", "freq", "rel.freq", "summary"],
+    hint: "prop.table() converte contagens em proporções. Multiplique por 100 para porcentagens."
+  },
+
+  // -------------------- BLOCO 4: ASSOCIAÇÃO E FORMA --------------------
+  {
+    title: "Fase 14 — Correlação linear (Pearson)",
+    desc: "Quantifique a associação linear entre IDEB e taxa de aprovação.",
+    theory: {
+      tag: "Associação",
+      title: "Coeficiente de correlação de Pearson",
+      text: "Mede a <strong>força e sentido</strong> da associação LINEAR entre duas variáveis quantitativas. Varia em [-1, +1].",
+      formula: "r = Σ(x<span class='var-sub'>i</span>−x̄)(y<span class='var-sub'>i</span>−ȳ) / √(Σ(x<span class='var-sub'>i</span>−x̄)² · Σ(y<span class='var-sub'>i</span>−ȳ)²)",
+      note: "r = 1: linear perfeita positiva · r = 0: sem relação linear · r = -1: linear perfeita negativa. r não detecta relações não-lineares."
+    },
+    expected: "[1] 0.722",
+    template: [{slot:0}, "(ideb$ideb, ideb$aprovacao)"],
+    answers: ["cor"],
+    bank: ["cor", "cov", "correlation", "cor.test", "lm", "rho"],
+    hint: "cor() devolve o coeficiente. Para o teste de significância (com p-valor), use cor.test()."
+  },
+
+  {
+    title: "Fase 15 — Correlação de Spearman (não-paramétrica)",
+    desc: "Mesma análise, mas baseada em postos (robusta a outliers e relações monótonas não-lineares).",
+    theory: {
+      tag: "Associação",
+      title: "Correlação de Spearman",
+      text: "Versão <strong>baseada em postos</strong>: ranqueia as observações e calcula Pearson sobre os ranks. Detecta relações monótonas (mesmo não-lineares).",
+      formula: "ρ<span class='var-sub'>S</span> = 1 − 6·Σd<span class='var-sub'>i</span>² / (n·(n²−1))",
+      note: "Em R, cor(x, y, method = 'spearman'). Outra opção: method = 'kendall' (tau de Kendall)."
+    },
+    expected: "[1] 0.741",
+    template: ["cor(ideb$ideb, ideb$aprovacao, ", {slot:0}, ' = "spearman")'],
+    answers: ["method"],
+    bank: ["method", "type", "kind", "rank", "spearman", "use"],
+    hint: 'O argumento que define o tipo de correlação é "method". Os valores aceitos são "pearson" (padrão), "spearman" e "kendall".'
+  },
+
+  {
+    title: "Fase 16 — Assimetria (skewness)",
+    desc: "Verifique se a distribuição do IDEB é simétrica ou assimétrica.",
+    theory: {
+      tag: "Forma",
+      title: "Coeficiente de assimetria",
+      text: "Mede a <strong>simetria</strong> da distribuição. Valores próximos de 0 indicam simetria; positivo = cauda à direita; negativo = cauda à esquerda.",
+      formula: "γ<span class='var-sub'>1</span> = E[(X − μ)³] / σ³",
+      note: "R base não tem skewness(). Use o pacote 'moments' (mais comum) ou 'e1071'. moments::skewness() usa fórmula populacional."
+    },
+    expected: "[1] 0.142",
+    template: ["library(moments)\n", {slot:0}, "(ideb$ideb)"],
+    answers: ["skewness"],
+    bank: ["skewness", "kurtosis", "moment", "skew", "asymmetry", "describe"],
+    hint: "skewness() do pacote moments. Mais perto de 0 = mais simétrica. Para o IDEB simulado, ligeiramente positiva."
+  },
+
+  {
+    title: "Fase 17 — Curtose",
+    desc: "Verifique se a distribuição tem caudas pesadas (excesso de outliers) ou achatadas.",
+    theory: {
+      tag: "Forma",
+      title: "Coeficiente de curtose",
+      text: "Mede o <strong>peso das caudas</strong> da distribuição. Normal tem curtose = 3 (excesso = 0). Maior = mais leptocúrtica (caudas pesadas); menor = platicúrtica.",
+      formula: "γ<span class='var-sub'>2</span> = E[(X − μ)⁴] / σ⁴",
+      note: "moments::kurtosis() devolve o valor BRUTO (normal = 3). Para 'excess kurtosis' (normal = 0), subtraia 3."
+    },
+    expected: "[1] 2.847",
+    template: ["library(moments)\n", {slot:0}, "(ideb$ideb)"],
+    answers: ["kurtosis"],
+    bank: ["kurtosis", "skewness", "moment", "tail", "peakedness", "kurt"],
+    hint: "kurtosis() do pacote moments. Valor próximo de 3 sugere caudas semelhantes às da normal."
+  },
+
+  // -------------------- BLOCO 5: VISUALIZAÇÃO EXPLORATÓRIA --------------------
+  {
+    title: "Fase 18 — Histograma",
+    desc: "Plote o histograma do IDEB com 15 classes (bins).",
+    theory: {
+      tag: "Visualização",
+      title: "Histograma",
+      text: "Discretiza uma variável contínua em <strong>classes (bins)</strong> e mostra a frequência de cada uma. Revela forma, centro, dispersão e modas.",
+      formula: "h(b<span class='var-sub'>k</span>) = #{x<span class='var-sub'>i</span> ∈ b<span class='var-sub'>k</span>}",
+      note: "Em R base: hist(). Argumentos úteis: breaks (nº de classes), freq = FALSE (eixo Y em densidade), col (cor)."
+    },
+    expected: "Histograma renderizado com 15 barras\nentre 1.5 e 9.0",
+    template: ["hist(ideb$ideb, ", {slot:0}, " = 15)"],
+    answers: ["breaks"],
+    bank: ["breaks", "bins", "nclass", "n", "groups", "classes"],
+    hint: "Em hist() base R, o argumento que controla o número de classes é breaks. Em ggplot2 seria bins."
+  },
+
+  {
+    title: "Fase 19 — Boxplot por grupo",
+    desc: "Compare visualmente o IDEB entre as 4 redes usando boxplot.",
+    theory: {
+      tag: "Visualização",
+      title: "Boxplot (Tukey)",
+      text: "Visualização sintética usando 5 números resumo + outliers. Caixa = Q1 a Q3 (IQR); linha do meio = mediana; bigodes = ±1.5·IQR; pontos = outliers.",
+      formula: "Q<span class='var-sub'>1</span> | Md | Q<span class='var-sub'>3</span> ± 1.5·IQR",
+      note: "Sintaxe de fórmula: boxplot(y ~ x, data = ...) cria um boxplot por nível de x. Equivale ao geom_boxplot do ggplot2."
+    },
+    expected: "Boxplot de 4 caixas: Estadual,\nFederal, Municipal, Privada",
+    template: ["boxplot(ideb ", {slot:0}, " rede, data = ideb)"],
+    answers: ["~"],
+    bank: ["~", "+", ",", "|", "*", ":"],
+    hint: "Em R base, o operador de fórmula entre resposta e preditor é ~ (til). 'y ~ x' lê-se 'y em função de x'."
+  },
+
+  // -------------------- FASE 20: BOSS --------------------
+  {
+    title: "Fase 20 — Análise descritiva por grupo (boss final)",
+    desc: "Use o dplyr para calcular n, média, mediana, sd, mínimo e máximo do IDEB por rede.",
+    theory: {
+      tag: "Workflow",
+      title: "Análise descritiva agrupada",
+      text: "Fluxo típico: agrupar pela variável categórica e calcular <strong>várias estatísticas descritivas</strong> em paralelo no summarise().",
+      formula: "ideb %>% group_by(rede) %>% summarise(estatísticas)",
+      note: "Em produção, considere também o desvio interquartil, mínimo e máximo. n() conta o tamanho de cada grupo."
+    },
+    expected: "rede        n    media  mediana    sd     min    max\nEstadual    58   4.81    4.75   1.12   2.10   7.20\nFederal     12   6.42    6.40   0.85   5.10   8.10\nMunicipal   80   4.58    4.50   1.05   1.60   7.30\nPrivada     50   6.55    6.60   1.18   3.90   8.90",
+    template: [
+      "ideb %>%\n  ", {slot:0}, "(rede) %>%\n  ",
+      {slot:1}, "(\n    n       = ", {slot:2}, "(),\n    media   = ", {slot:3}, "(ideb),\n    mediana = ", {slot:4}, "(ideb),\n    sd      = sd(ideb),\n    min     = min(ideb),\n    max     = max(ideb)\n  )"
+    ],
+    answers: ["group_by", "summarise", "n", "mean", "median"],
+    bank: ["group_by", "summarise", "n", "mean", "median", "filter", "mutate", "count", "length", "sd"],
+    hint: "Sequência: group_by → summarise → n() para contagem, mean() para média, median() para mediana."
+  }
+];
+
+// =====================================================================
+// ENGINE (mesma estrutura dos outros games)
+// =====================================================================
+function rng(seed) { let s = seed; return () => { s = (s*9301+49297)%233280; return s/233280; }; }
+
+const estado = {
+  fase: 0, pontos: 0, vidas: 3, tentativas: 0,
+  dicasUsadas: 0, errosTotais: 0, hintUsadaNaFase: false,
+  slotsFilled: []
+};
+
+function trocarTela(id) {
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function iniciarJogo() {
+  Object.assign(estado, {fase:0, pontos:0, vidas:3, tentativas:0, dicasUsadas:0, errosTotais:0});
+  document.getElementById('hud').style.display = 'flex';
+  trocarTela('screen-game');
+  carregarFase();
+}
+function reiniciarJogo() { iniciarJogo(); }
+
+function carregarFase() {
+  const f = FASES[estado.fase];
+  estado.slotsFilled = new Array(f.answers.length).fill(null);
+  estado.tentativas = 0;
+  estado.hintUsadaNaFase = false;
+
+  document.getElementById('hud-level').textContent = estado.fase + 1;
+  document.getElementById('hud-total').textContent = FASES.length;
+  document.getElementById('hud-score').textContent = estado.pontos;
+  document.getElementById('hud-lives').textContent = "♥".repeat(estado.vidas) + "♡".repeat(3 - estado.vidas);
+  document.getElementById('progress-fill').style.width = ((estado.fase) / FASES.length * 100) + '%';
+
+  document.getElementById('level-title').textContent = f.title;
+  document.getElementById('level-desc').textContent = f.desc;
+
+  document.getElementById('theory-tag').textContent   = f.theory.tag;
+  document.getElementById('theory-title').textContent = f.theory.title;
+  document.getElementById('theory-text').innerHTML    = f.theory.text;
+  document.getElementById('theory-formula').innerHTML = f.theory.formula;
+  document.getElementById('theory-note').textContent  = f.theory.note;
+  document.getElementById('expected-content').textContent = f.expected;
+
+  renderTemplate();
+  renderBank();
+
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('btn-check').style.display = '';
+  document.getElementById('btn-next').style.display = 'none';
+}
+
+function renderTemplate() {
+  const f = FASES[estado.fase];
+  const cont = document.getElementById('code-template');
+  cont.innerHTML = '';
+  f.template.forEach(piece => {
+    if (typeof piece === 'string') {
+      const span = document.createElement('span');
+      span.textContent = piece;
+      cont.appendChild(span);
+    } else {
+      const slot = document.createElement('span');
+      slot.className = 'slot';
+      slot.dataset.slotIdx = piece.slot;
+      slot.textContent = '___';
+      if (estado.slotsFilled[piece.slot]) {
+        slot.classList.add('filled');
+        slot.textContent = estado.slotsFilled[piece.slot];
+      }
+      slot.addEventListener('dragover', e => { e.preventDefault(); slot.classList.add('over'); });
+      slot.addEventListener('dragleave', () => slot.classList.remove('over'));
+      slot.addEventListener('drop', e => {
+        e.preventDefault();
+        slot.classList.remove('over');
+        const val = e.dataTransfer.getData('text/plain');
+        if (!val) return;
+        estado.slotsFilled[piece.slot] = val;
+        renderTemplate(); renderBank();
+      });
+      slot.addEventListener('click', () => {
+        if (estado.slotsFilled[piece.slot]) {
+          estado.slotsFilled[piece.slot] = null;
+          renderTemplate(); renderBank();
+        }
+      });
+      cont.appendChild(slot);
+    }
+  });
+}
+
+function renderBank() {
+  const f = FASES[estado.fase];
+  const bank = document.getElementById('block-bank');
+  bank.innerHTML = '';
+  const usados = {};
+  estado.slotsFilled.forEach(v => { if (v) usados[v] = (usados[v]||0) + 1; });
+  const embaralhado = f.bank.slice();
+  const r = rng(estado.fase * 37 + 1);
+  for (let i = embaralhado.length-1; i>0; i--) {
+    const j = Math.floor(r()*(i+1));
+    [embaralhado[i], embaralhado[j]] = [embaralhado[j], embaralhado[i]];
+  }
+  embaralhado.forEach(b => {
+    const el = document.createElement('div');
+    el.className = 'block';
+    if (usados[b]) el.classList.add('used');
+    el.textContent = b;
+    el.draggable = true;
+    el.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', b); el.classList.add('dragging'); });
+    el.addEventListener('dragend', () => el.classList.remove('dragging'));
+    bank.appendChild(el);
+  });
+}
+
+function verificar() {
+  const f = FASES[estado.fase];
+  if (estado.slotsFilled.some(v => v === null)) {
+    mostrarFeedback('error', 'Preencha todos os slots antes de verificar.', 'error');
+    return;
+  }
+  const errados = [];
+  f.answers.forEach((ans, i) => { if (estado.slotsFilled[i] !== ans) errados.push(i); });
+
+  document.querySelectorAll('.slot').forEach(s => {
+    const idx = parseInt(s.dataset.slotIdx);
+    s.classList.remove('correct','wrong');
+    if (errados.includes(idx)) s.classList.add('wrong');
+    else if (estado.slotsFilled[idx]) s.classList.add('correct');
+  });
+
+  if (errados.length === 0) {
+    let ganho = 100;
+    if (estado.tentativas === 1) ganho = 60;
+    else if (estado.tentativas >= 2) ganho = 30;
+    if (estado.hintUsadaNaFase) ganho = Math.max(10, ganho - 30);
+    estado.pontos += ganho;
+    document.getElementById('hud-score').textContent = estado.pontos;
+    mostrarFeedback('success',
+      `Acertou! +${ganho} pontos. ` + (estado.fase < FASES.length-1 ? 'Próxima fase liberada.' : 'Você terminou todas as fases.'),
+      'check_circle');
+    document.getElementById('btn-check').style.display = 'none';
+    document.getElementById('btn-next').style.display = '';
+    document.getElementById('progress-fill').style.width = ((estado.fase+1) / FASES.length * 100) + '%';
+    confetti();
+  } else {
+    estado.tentativas++;
+    estado.errosTotais++;
+    estado.vidas--;
+    document.getElementById('hud-lives').textContent = "♥".repeat(Math.max(0,estado.vidas)) + "♡".repeat(3-Math.max(0,estado.vidas));
+    const dirPanel = document.querySelectorAll('.panel-game')[1];
+    if (dirPanel) { dirPanel.classList.add('shake'); setTimeout(()=>dirPanel.classList.remove('shake'), 400); }
+    if (estado.vidas <= 0) {
+      mostrarFeedback('error', `Sem vidas. Resposta correta: ${f.answers.join(', ')}. Avançando...`, 'error');
+      document.getElementById('btn-check').style.display = 'none';
+      document.getElementById('btn-next').style.display = '';
+      estado.vidas = 1;
+    } else {
+      mostrarFeedback('error', `${errados.length} slot(s) incorreto(s). Tente de novo.`, 'cancel');
+    }
+  }
+}
+
+function mostrarFeedback(tipo, msg, icone) {
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback show ' + tipo;
+  document.getElementById('feedback-icon').textContent = icone || 'info';
+  document.getElementById('feedback-msg').textContent = msg;
+}
+
+function usarDica() {
+  if (estado.hintUsadaNaFase) { mostrarFeedback('hint', 'Você já usou a dica desta fase.', 'lightbulb'); return; }
+  estado.hintUsadaNaFase = true;
+  estado.dicasUsadas++;
+  estado.pontos = Math.max(0, estado.pontos - 30);
+  document.getElementById('hud-score').textContent = estado.pontos;
+  mostrarFeedback('hint', FASES[estado.fase].hint, 'lightbulb');
+}
+
+function reiniciarFase() {
+  estado.slotsFilled = new Array(FASES[estado.fase].answers.length).fill(null);
+  renderTemplate(); renderBank();
+  document.getElementById('feedback').className = 'feedback';
+}
+
+function proximaFase() {
+  estado.fase++;
+  if (estado.fase >= FASES.length) mostrarFim();
+  else carregarFase();
+}
+
+function mostrarFim() {
+  document.getElementById('hud').style.display = 'none';
+  document.getElementById('end-score').textContent = estado.pontos;
+  document.getElementById('end-level').textContent = FASES.length;
+  document.getElementById('end-hints').textContent = estado.dicasUsadas;
+  document.getElementById('end-errors').textContent = estado.errosTotais;
+  const maxPts = FASES.length * 100;
+  const pct = estado.pontos / maxPts;
+  let stars = '⭐', titulo = 'Bom começo';
+  let msg = 'Você completou todas as fases. Que tal jogar de novo para melhorar a pontuação?';
+  if (pct >= 0.85) { stars = '⭐⭐⭐'; titulo = 'Estatístico em ação'; msg = 'Pontuação excelente. Tendência central, dispersão, correlação — você domina!'; }
+  else if (pct >= 0.6) { stars = '⭐⭐'; titulo = 'Muito bem'; msg = 'Você foi bem. Revise as fases em que errou para fechar conceitos.'; }
+  document.getElementById('end-title').textContent = titulo;
+  document.getElementById('end-msg').textContent = msg;
+  document.getElementById('end-stars').textContent = stars;
+  trocarTela('screen-end');
+  confetti();
+}
+
+function confetti() {
+  const c = document.getElementById('confetti');
+  c.style.display = 'block';
+  c.width = window.innerWidth; c.height = window.innerHeight;
+  const ctx = c.getContext('2d');
+  const peças = [];
+  const cores = ['#1976d2','#2e7d32','#ed6c02','#d32f2f','#7b1fa2'];
+  for (let i=0; i<70; i++) {
+    peças.push({ x: Math.random()*c.width, y: -20 - Math.random()*200,
+      vx: (Math.random()-0.5)*3, vy: 2 + Math.random()*3,
+      cor: cores[Math.floor(Math.random()*cores.length)],
+      size: 6 + Math.random()*8, rot: Math.random()*Math.PI*2,
+      vr: (Math.random()-0.5)*0.3 });
+  }
+  let frames = 0;
+  function animar() {
+    ctx.clearRect(0,0,c.width,c.height);
+    peças.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.cor; ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+      ctx.restore();
+    });
+    frames++;
+    if (frames < 140) requestAnimationFrame(animar);
+    else { c.style.display = 'none'; ctx.clearRect(0,0,c.width,c.height); }
+  }
+  animar();
+}
+</script>
+</body>
+</html>

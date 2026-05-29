@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>hipóteses Quest · Conceitos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500;700&family=Source+Serif+Pro:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary:        #1976d2;
+    --primary-dark:   #1565c0;
+    --primary-light:  #42a5f5;
+    --theory:         #3949ab;        /* indigo 600 — hipóteses */
+    --theory-soft:    #e8eaf6;
+    --error:          #d32f2f;
+    --warning:        #ed6c02;
+    --success:        #2e7d32;
+    --bg:             #f5f5f5;
+    --paper:          #ffffff;
+    --surface-2:      #fafafa;
+    --divider:        rgba(0,0,0,0.12);
+    --text-primary:   rgba(0,0,0,0.87);
+    --text-secondary: rgba(0,0,0,0.6);
+    --on-primary:     #ffffff;
+    --e1: 0 2px 1px -1px rgba(0,0,0,0.2), 0 1px 1px 0 rgba(0,0,0,0.14), 0 1px 3px 0 rgba(0,0,0,0.12);
+    --e2: 0 3px 1px -2px rgba(0,0,0,0.2), 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12);
+    --e4: 0 2px 4px -1px rgba(0,0,0,0.2), 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12);
+  }
+  body {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg); color: var(--text-primary);
+    min-height: 100vh; -webkit-font-smoothing: antialiased; line-height: 1.5;
+  }
+
+  .appbar {
+    background: var(--primary); color: var(--on-primary);
+    box-shadow: var(--e4); position: sticky; top: 0; z-index: 100;
+    padding: 0 24px; display: flex; align-items: center; justify-content: space-between;
+    min-height: 64px;
+  }
+  .appbar-brand { display: inline-flex; align-items: center; margin-right: 16px; text-decoration: none; }
+  .appbar-brand img { height: 36px; display: block; border-radius: 8px; background: white; padding: 2px; transition: transform 0.2s; }
+  .appbar-brand:hover img { transform: scale(1.04); }
+  .appbar-left { display: flex; align-items: center; }
+  .appbar-title { display: flex; align-items: center; gap: 12px; font-size: 20px; font-weight: 500; letter-spacing: 0.0075em; }
+  .appbar-title .material-icons { font-size: 28px; }
+  .appbar-title .sub { font-size: 12px; font-weight: 400; opacity: 0.85; margin-left: 8px; }
+  .hud { display: flex; gap: 8px; align-items: center; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.16); color: var(--on-primary); padding: 6px 12px; border-radius: 16px; font-size: 13px; font-weight: 500; }
+  .chip .material-icons { font-size: 18px; }
+  .chip-progress { background: rgba(255,255,255,0.16); width: 140px; height: 4px; border-radius: 2px; overflow: hidden; margin-left: 8px; }
+  .chip-progress > div { height: 100%; background: var(--on-primary); width: 0%; transition: width 0.4s; }
+
+  .screen { display: none; padding: 32px 24px 64px; }
+  .screen.active { display: block; }
+
+  #screen-start {
+    text-align: center; padding-top: 80px; min-height: 85vh;
+    display: none; flex-direction: column; align-items: center;
+  }
+  #screen-start.active { display: flex; }
+  #screen-start h1 { font-size: 60px; font-weight: 300; letter-spacing: -0.5px; color: var(--text-primary); margin-bottom: 16px; }
+  #screen-start h1 .accent { color: var(--primary); font-weight: 500; }
+  #screen-start .lead { font-size: 16px; color: var(--text-secondary); max-width: 660px; margin: 0 auto 8px; line-height: 1.6; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px; border: none; cursor: pointer; font-family: inherit;
+    font-weight: 500; font-size: 14px; letter-spacing: 0.02857em;
+    text-transform: uppercase; padding: 8px 22px; min-height: 36px;
+    border-radius: 4px; transition: all 0.2s;
+    position: relative; overflow: hidden; user-select: none;
+  }
+  .btn .material-icons { font-size: 18px; }
+  .btn-contained { background: var(--primary); color: var(--on-primary); box-shadow: var(--e2); }
+  .btn-contained:hover { background: var(--primary-dark); box-shadow: var(--e4); }
+  .btn-text { background: transparent; color: var(--primary); padding: 6px 16px; }
+  .btn-text:hover { background: rgba(25,118,210,0.08); }
+  .btn-fab { margin-top: 40px; padding: 14px 40px; font-size: 15px; min-height: 48px; border-radius: 8px; }
+  .btn::after {
+    content: ''; position: absolute; top: 50%; left: 50%;
+    width: 0; height: 0; border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease;
+    pointer-events: none;
+  }
+  .btn-text::after { background: rgba(25,118,210,0.2); }
+  .btn:active::after { width: 220%; height: 220%; transition: 0s; }
+
+  .card { background: var(--paper); border-radius: 8px; box-shadow: var(--e1); padding: 24px; }
+  .card-feature { background: var(--paper); border-radius: 8px; box-shadow: var(--e1); padding: 28px; text-align: left; }
+  .feature-icon {
+    width: 48px; height: 48px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: rgba(57,73,171,0.12); color: var(--theory); margin-bottom: 16px;
+  }
+  .feature-icon .material-icons { font-size: 28px; }
+  .card-feature h3 { font-size: 18px; font-weight: 500; margin-bottom: 8px; color: var(--text-primary); }
+  .card-feature p { font-size: 14px; color: var(--text-secondary); line-height: 1.55; }
+  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 56px; max-width: 960px; width: 100%; }
+
+  .game-grid { display: grid; grid-template-columns: 1fr 1.05fr; gap: 24px; max-width: 1480px; margin: 0 auto; }
+  .panel-title {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 500; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-secondary); margin-bottom: 16px;
+  }
+  .panel-title .material-icons { font-size: 18px; color: var(--primary); }
+  .level-title { font-size: 22px; font-weight: 500; color: var(--text-primary); margin-bottom: 4px; }
+  .level-desc { color: var(--text-secondary); font-size: 14px; line-height: 1.55; margin-bottom: 20px; }
+
+  .theory-card {
+    background: var(--theory-soft);
+    border-left: 4px solid var(--theory);
+    border-radius: 4px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+  }
+  .theory-head {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--theory);
+    margin-bottom: 10px;
+  }
+  .theory-head .material-icons { font-size: 18px; }
+  .theory-title { font-size: 16px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px; }
+  .theory-text { font-size: 14px; color: var(--text-primary); line-height: 1.6; margin-bottom: 12px; }
+  .theory-text strong { color: var(--theory); font-weight: 500; }
+
+  .formula {
+    background: #fff;
+    border: 1px solid rgba(57,73,171,0.2);
+    border-radius: 4px;
+    padding: 14px 18px;
+    text-align: center;
+    font-family: 'Source Serif Pro', Georgia, serif;
+    font-size: 18px; font-style: italic;
+    color: var(--text-primary);
+    margin: 8px 0 12px;
+    letter-spacing: 0.5px;
+  }
+  .formula .var-sub { font-size: 11px; vertical-align: sub; font-style: normal; }
+  .formula .var-sup { font-size: 11px; vertical-align: super; font-style: normal; }
+
+  .theory-note {
+    font-size: 13px; color: var(--text-secondary);
+    line-height: 1.55;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(57,73,171,0.2);
+  }
+
+  .scenario {
+    margin-top: 8px; padding: 14px 18px;
+    background: var(--surface-2); border-radius: 4px;
+    border-left: 3px solid var(--success);
+  }
+  .scenario-title {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-secondary); font-weight: 600; margin-bottom: 6px;
+  }
+  .scenario-content {
+    font-size: 14px; color: var(--text-primary); line-height: 1.6;
+  }
+  .scenario-content code {
+    background: rgba(0,0,0,0.04); padding: 2px 6px; border-radius: 3px;
+    font-family: 'Roboto Mono', monospace; font-size: 13px;
+  }
+
+  .answer-block {
+    background: #fafafa; color: #212121;
+    padding: 22px 26px; border-radius: 4px;
+    border: 1px solid var(--divider);
+    font-size: 15.5px; line-height: 2.4;
+    margin-bottom: 20px; min-height: 110px;
+  }
+  .slot {
+    display: inline-block; min-width: 110px;
+    padding: 4px 14px; margin: 0 4px;
+    background: #fff; border: 1.5px dashed #9e9e9e;
+    border-radius: 4px; color: #9e9e9e;
+    text-align: center; font-style: italic;
+    vertical-align: middle; transition: all 0.15s;
+    font-size: 14px;
+  }
+  .slot.over    { background: rgba(25,118,210,0.08); border-color: var(--primary); border-style: solid; }
+  .slot.filled  { background: rgba(25,118,210,0.08); border: 1.5px solid var(--primary); color: var(--primary-dark); font-style: normal; font-weight: 500; cursor: pointer; }
+  .slot.wrong   { background: rgba(211,47,47,0.08); border: 1.5px solid var(--error); color: var(--error); }
+  .slot.correct { background: rgba(46,125,50,0.08); border: 1.5px solid var(--success); color: var(--success); }
+
+  .bank-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); margin-bottom: 12px; font-weight: 500; }
+  .bank {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    min-height: 88px; padding: 16px;
+    background: var(--surface-2); border-radius: 4px; border: 1px solid var(--divider);
+  }
+  .block {
+    display: inline-flex; align-items: center; padding: 8px 16px;
+    background: var(--paper); color: var(--text-primary);
+    border: 1px solid var(--divider); border-radius: 16px;
+    font-size: 14px; font-weight: 500;
+    cursor: grab; user-select: none;
+    transition: all 0.15s; box-shadow: var(--e1);
+  }
+  .block:hover { background: var(--surface-2); box-shadow: var(--e2); transform: translateY(-1px); }
+  .block:active { cursor: grabbing; }
+  .block.dragging { opacity: 0.4; }
+  .block.used { display: none; }
+
+  .actions { display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; justify-content: flex-end; }
+
+  .feedback {
+    margin-top: 16px; padding: 12px 16px; border-radius: 4px;
+    font-size: 14px; line-height: 1.5;
+    border-left: 4px solid; display: none; align-items: flex-start; gap: 10px;
+  }
+  .feedback.show { display: flex; }
+  .feedback.success { background: #edf7ed; color: #1e4620; border-color: var(--success); }
+  .feedback.error   { background: #fdecea; color: #5f2120; border-color: var(--error); }
+  .feedback.hint    { background: #fff4e5; color: #663c00; border-color: var(--warning); }
+  .feedback .material-icons { font-size: 22px; }
+  .feedback.success .material-icons { color: var(--success); }
+  .feedback.error .material-icons   { color: var(--error); }
+  .feedback.hint .material-icons    { color: var(--warning); }
+
+  #screen-end { text-align: center; padding-top: 80px; min-height: 80vh; }
+  #screen-end h1 { font-size: 48px; font-weight: 300; color: var(--text-primary); margin-bottom: 12px; letter-spacing: -0.5px; }
+  #screen-end .end-sub { font-size: 16px; color: var(--text-secondary); max-width: 560px; margin: 0 auto; }
+  .final-score-card { background: var(--paper); border-radius: 8px; box-shadow: var(--e2); padding: 32px; margin: 32px auto; max-width: 480px; }
+  .final-score { font-size: 72px; font-weight: 300; color: var(--primary); margin: 8px 0; letter-spacing: -2px; }
+  .stars { font-size: 36px; margin: 8px 0 16px; letter-spacing: 10px; }
+  .final-stats { display: flex; justify-content: center; gap: 56px; flex-wrap: wrap; }
+  .final-stat .v { font-size: 28px; font-weight: 500; color: var(--text-primary); }
+  .final-stat .l { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .card, .panel-game { animation: fadeIn 0.3s ease; }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  .shake { animation: shake 0.35s; }
+  #confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 200; display: none; }
+
+  @media (max-width: 960px) {
+    .game-grid { grid-template-columns: 1fr; }
+    .features-grid { grid-template-columns: 1fr; }
+    .hud .chip-progress { display: none; }
+    #screen-start h1 { font-size: 40px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="appbar">
+  <div class="appbar-left">
+    <a href="index.html" class="appbar-brand" title="Voltar ao portal Evante">
+      <img src="Evante-01.jpg" alt="Evante" />
+    </a>
+    <div class="appbar-title">
+      <span class="material-icons">balance</span>
+      hipóteses Quest <span class="sub">· Conceitos</span>
+    </div>
+  </div>
+  <div class="hud" id="hud" style="display:none;">
+    <div class="chip"><span class="material-icons">flag</span><span id="hud-level">1</span>/<span id="hud-total">20</span></div>
+    <div class="chip-progress"><div id="progress-fill"></div></div>
+    <div class="chip"><span class="material-icons">stars</span><span id="hud-score">0</span></div>
+    <div class="chip"><span class="material-icons">favorite</span><span id="hud-lives">3</span></div>
+  </div>
+</header>
+
+<section id="screen-start" class="screen active">
+  <h1>hipóteses <span class="accent">Quest</span></h1>
+  <p class="lead">Aprenda <strong>testes de hipóteses</strong> apenas com conceitos — sem código, sem software.</p>
+  <p class="lead">20 fases sobre formulação de hipóteses, p-valor, erros tipo I e II, poder, escolha do teste adequado e correções para múltiplas comparações.</p>
+
+  <button class="btn btn-contained btn-fab" onclick="iniciarJogo()">
+    <span class="material-icons">play_arrow</span>Começar
+  </button>
+
+  <div class="features-grid">
+    <div class="card-feature">
+      <div class="feature-icon"><span class="material-icons">balance</span></div>
+      <h3>Hipóteses e decisão</h3>
+      <p>H₀ vs H₁, α, p-valor, rejeitar ou não rejeitar — entenda a lógica da inferência estatística.</p>
+    </div>
+    <div class="card-feature">
+      <div class="feature-icon"><span class="material-icons">error</span></div>
+      <h3>Erros e poder</h3>
+      <p>Distinga falso positivo (tipo I) de falso negativo (tipo II) e como o poder se relaciona ao tamanho amostral.</p>
+    </div>
+    <div class="card-feature">
+      <div class="feature-icon"><span class="material-icons">rule</span></div>
+      <h3>Escolha certa</h3>
+      <p>Aprenda a escolher o teste adequado ao tipo de variável, à situação e aos pressupostos atendidos.</p>
+    </div>
+  </div>
+</section>
+
+<section id="screen-game" class="screen">
+  <div class="game-grid">
+    <div class="card panel-game">
+      <div class="panel-title"><span class="material-icons">menu_book</span>Conceito</div>
+      <div class="level-title" id="level-title">Fase 1</div>
+      <div class="level-desc" id="level-desc"></div>
+
+      <div class="theory-card">
+        <div class="theory-head"><span class="material-icons">functions</span><span id="theory-tag">Teoria</span></div>
+        <div class="theory-title" id="theory-title"></div>
+        <div class="theory-text" id="theory-text"></div>
+        <div class="formula" id="theory-formula"></div>
+        <div class="theory-note" id="theory-note"></div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-title">Situação</div>
+        <div class="scenario-content" id="scenario-content"></div>
+      </div>
+    </div>
+
+    <div class="card panel-game">
+      <div class="panel-title"><span class="material-icons">edit</span>Complete a frase</div>
+      <div class="answer-block" id="code-template"></div>
+
+      <div class="bank-title">Opções · arraste para as lacunas</div>
+      <div class="bank" id="block-bank"></div>
+
+      <div class="feedback" id="feedback">
+        <span class="material-icons" id="feedback-icon">info</span>
+        <span id="feedback-msg"></span>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-text" onclick="usarDica()"><span class="material-icons">lightbulb</span>Dica · -30</button>
+        <button class="btn btn-text" onclick="reiniciarFase()"><span class="material-icons">refresh</span>Reiniciar</button>
+        <button class="btn btn-contained" id="btn-check" onclick="verificar()"><span class="material-icons">check_circle</span>Verificar</button>
+        <button class="btn btn-contained" id="btn-next" onclick="proximaFase()" style="display:none;">Próxima<span class="material-icons">arrow_forward</span></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="screen-end" class="screen">
+  <h1 id="end-title">Parabéns</h1>
+  <p class="end-sub" id="end-msg">Você completou todas as fases.</p>
+  <div class="final-score-card">
+    <div class="stars" id="end-stars">⭐⭐⭐</div>
+    <div class="final-score" id="end-score">0</div>
+    <div class="final-stats">
+      <div class="final-stat"><div class="v" id="end-level">20</div><div class="l">Fases</div></div>
+      <div class="final-stat"><div class="v" id="end-hints">0</div><div class="l">Dicas</div></div>
+      <div class="final-stat"><div class="v" id="end-errors">0</div><div class="l">Erros</div></div>
+    </div>
+  </div>
+  <button class="btn btn-contained btn-fab" onclick="reiniciarJogo()">
+    <span class="material-icons">replay</span>Jogar de novo
+  </button>
+</section>
+
+<canvas id="confetti"></canvas>
+
+<script>
+// =====================================================================
+// 20 FASES — Testes de hipóteses (conceitual, sem código)
+// =====================================================================
+const FASES = [
+  // -------------------- BLOCO 1: CONCEITOS BÁSICOS --------------------
+  {
+    title: "Fase 1 — Hipótese nula (H₀)",
+    desc: "Identifique a hipótese que representa a 'ausência de efeito'.",
+    theory: {
+      tag: "Hipóteses",
+      title: "H₀ × H₁",
+      text: "Em um teste, formulamos DUAS hipóteses concorrentes. A <strong>hipótese nula H<span class='var-sub'>0</span></strong> representa o status quo (sem efeito, sem diferença). A <strong>hipótese alternativa H<span class='var-sub'>1</span></strong> representa o que queremos provar.",
+      formula: "H<span class='var-sub'>0</span>: µ = µ<span class='var-sub'>0</span>  vs  H<span class='var-sub'>1</span>: µ ≠ µ<span class='var-sub'>0</span>",
+      note: "Nunca 'aceitamos' H₀ — apenas falhamos em rejeitá-la. Isso porque a ausência de evidência não é evidência de ausência."
+    },
+    scenario: "Um pesquisador quer testar se uma vacina é eficaz. A vacina <strong>NÃO ter efeito</strong> sobre a proteção é representada por qual hipótese?",
+    template: ["A afirmação 'sem efeito' corresponde à hipótese ", {slot:0}, "."],
+    answers: ["nula"],
+    bank: ["nula", "alternativa", "secundária", "principal", "complementar", "auxiliar"],
+    hint: "A hipótese que representa 'status quo' ou 'sem efeito' é a NULA (H₀)."
+  },
+
+  {
+    title: "Fase 2 — Teste bilateral",
+    desc: "Identifique o tipo de teste a partir da hipótese alternativa.",
+    theory: {
+      tag: "Hipóteses",
+      title: "Bilateral × Unilateral",
+      text: "Quando H<span class='var-sub'>1</span> contém <strong>≠</strong> (qualquer direção), o teste é <strong>bilateral</strong>. Quando contém <strong>></strong> ou <strong><</strong>, é <strong>unilateral</strong> (à direita ou à esquerda).",
+      formula: "H<span class='var-sub'>1</span>: µ ≠ µ<span class='var-sub'>0</span>  ⇒  bilateral",
+      note: "Use unilateral apenas quando há justificativa teórica forte para uma direção. Bilateral é o padrão."
+    },
+    scenario: "Um pesquisador testa se a média de proficiência dos alunos é <strong>diferente</strong> de 250 pontos (sem direção específica).",
+    template: ["A alternativa 'µ ≠ 250' caracteriza um teste ", {slot:0}, "."],
+    answers: ["bilateral"],
+    bank: ["bilateral", "unilateral", "direcional", "duplo", "neutro", "central"],
+    hint: "'Diferente de' (≠) significa 'qualquer direção' — teste bilateral."
+  },
+
+  {
+    title: "Fase 3 — Estatística do teste",
+    desc: "Identifique o nome da medida calculada a partir dos dados.",
+    theory: {
+      tag: "Processo",
+      title: "Estatística do teste",
+      text: "É a <strong>quantidade calculada a partir dos dados</strong> cuja distribuição sob H₀ é conhecida. Comparamos seu valor observado com a distribuição teórica.",
+      formula: "T = (x̄ − µ<span class='var-sub'>0</span>) / (s/√n)",
+      note: "Cada teste tem sua estatística: t (Student), Z (normal), χ² (qui-quadrado), F (Fisher-Snedecor)."
+    },
+    scenario: "Em um teste t para uma amostra, calcula-se a partir dos dados o valor T = (x̄ − µ₀) / (s/√n).",
+    template: ["Essa quantidade calculada dos dados chama-se ", {slot:0}, " do teste."],
+    answers: ["estatística"],
+    bank: ["estatística", "parâmetro", "amostra", "população", "estimador", "variância"],
+    hint: "Estatística (do teste) = quantidade calculada a partir dos dados que tem distribuição conhecida sob H₀."
+  },
+
+  {
+    title: "Fase 4 — Nível de significância (α)",
+    desc: "Identifique o que α representa.",
+    theory: {
+      tag: "Decisão",
+      title: "Nível de significância α",
+      text: "É a <strong>probabilidade máxima</strong> de cometer erro tipo I (rejeitar H₀ verdadeira) que estamos dispostos a aceitar. Fixado <em>a priori</em>.",
+      formula: "α = P(rejeitar H<span class='var-sub'>0</span> | H<span class='var-sub'>0</span> verdadeira)",
+      note: "Valores típicos: 0.05 (5%), 0.01 (1%), 0.10 (10%). Quanto menor α, mais conservador o teste."
+    },
+    scenario: "Um pesquisador adota α = 0.05 antes de coletar os dados. Esse valor representa a probabilidade máxima aceitável de:",
+    template: ["Rejeitar H<sub>0</sub> sendo ela ", {slot:0}, " (erro tipo I)."],
+    answers: ["verdadeira"],
+    bank: ["verdadeira", "falsa", "rejeitada", "aceita", "fraca", "duvidosa"],
+    hint: "α = probabilidade de rejeitar H₀ quando ela é VERDADEIRA. Erro tipo I = falso positivo."
+  },
+
+  {
+    title: "Fase 5 — Definição de p-valor",
+    desc: "Complete a definição correta do p-valor.",
+    theory: {
+      tag: "Decisão",
+      title: "p-valor",
+      text: "Probabilidade de observar uma estatística <strong>tão ou mais extrema</strong> que a observada, ASSUMINDO que H<span class='var-sub'>0</span> é verdadeira.",
+      formula: "p = P(T ≥ t<span class='var-sub'>obs</span> | H<span class='var-sub'>0</span>)",
+      note: "p-valor NÃO é probabilidade de H₀ ser verdadeira. É a probabilidade dos DADOS sob H₀."
+    },
+    scenario: "O p-valor é uma probabilidade condicional importante.",
+    template: ["O p-valor é a probabilidade de obter resultado tão ou mais extremo que o observado, supondo que H<sub>0</sub> seja ", {slot:0}, "."],
+    answers: ["verdadeira"],
+    bank: ["verdadeira", "falsa", "incerta", "improvável", "nula", "rejeitada"],
+    hint: "p-valor é calculado SOB H₀: assume-se H₀ verdadeira para computar a probabilidade."
+  },
+
+  // -------------------- BLOCO 2: ERROS E DECISÃO --------------------
+  {
+    title: "Fase 6 — Erro tipo I",
+    desc: "Identifique o tipo de erro descrito.",
+    theory: {
+      tag: "Erros",
+      title: "Falso positivo",
+      text: "<strong>Erro tipo I</strong> = rejeitar H<span class='var-sub'>0</span> quando ela é verdadeira. É o 'alarme falso': declarar efeito que não existe.",
+      formula: "P(erro tipo I) = α",
+      note: "Controlado diretamente por α. Quanto MENOR α, MENOR a chance desse erro — mas MAIOR a chance do erro tipo II."
+    },
+    scenario: "Em um teste clínico, conclui-se que um remédio funciona, quando na verdade ele é equivalente ao placebo.",
+    template: ["Esse é um erro do tipo ", {slot:0}, " (falso positivo)."],
+    answers: ["I"],
+    bank: ["I", "II", "III", "α", "β", "γ"],
+    hint: "Rejeitar H₀ verdadeira = erro tipo I = falso positivo. Probabilidade = α."
+  },
+
+  {
+    title: "Fase 7 — Erro tipo II",
+    desc: "Identifique o erro complementar.",
+    theory: {
+      tag: "Erros",
+      title: "Falso negativo",
+      text: "<strong>Erro tipo II</strong> = NÃO rejeitar H<span class='var-sub'>0</span> quando ela é falsa. É o 'alarme perdido': não detectar efeito que existe.",
+      formula: "P(erro tipo II) = β",
+      note: "Não é controlado diretamente. Para reduzir β: aumentar n, aumentar α, ou aumentar o efeito real."
+    },
+    scenario: "Em um estudo, conclui-se que duas estratégias de ensino têm mesmo efeito, quando uma delas é REALMENTE melhor.",
+    template: ["Esse é um erro do tipo ", {slot:0}, " (falso negativo)."],
+    answers: ["II"],
+    bank: ["II", "I", "III", "α", "β", "γ"],
+    hint: "Não rejeitar H₀ quando ela é FALSA = erro tipo II = falso negativo. Probabilidade = β."
+  },
+
+  {
+    title: "Fase 8 — Poder do teste",
+    desc: "Identifique a probabilidade complementar a β.",
+    theory: {
+      tag: "Erros",
+      title: "Poder estatístico",
+      text: "<strong>Poder</strong> = probabilidade de rejeitar H<span class='var-sub'>0</span> quando ela é falsa (acerto). É o complemento do erro tipo II.",
+      formula: "Poder = 1 − β",
+      note: "Valor desejável: poder ≥ 0.80. Aumenta com: tamanho da amostra ↑, magnitude do efeito ↑, α ↑."
+    },
+    scenario: "Em um estudo bem desenhado, queremos alta probabilidade de DETECTAR um efeito real (se ele existir).",
+    template: ["Essa probabilidade chama-se ", {slot:0}, " do teste."],
+    answers: ["poder"],
+    bank: ["poder", "tamanho", "nível", "significância", "confiança", "robustez"],
+    hint: "Poder = 1 − β = probabilidade de detectar efeito real. Em inglês: 'power'."
+  },
+
+  {
+    title: "Fase 9 — Regra de decisão",
+    desc: "Determine quando rejeitar H₀.",
+    theory: {
+      tag: "Decisão",
+      title: "Regra de decisão",
+      text: "Compara-se o <strong>p-valor</strong> obtido com o <strong>nível de significância α</strong> escolhido. A decisão é mecânica: se p ≤ α, rejeita-se H<span class='var-sub'>0</span>.",
+      formula: "Se p ≤ α ⇒ rejeitar H<span class='var-sub'>0</span>",
+      note: "Atenção: p > α NÃO prova que H₀ é verdadeira — apenas que não há evidência suficiente para rejeitá-la."
+    },
+    scenario: "Um teste produz p-valor = 0.023. O pesquisador havia fixado α = 0.05.",
+    template: ["Conclusão: como p < α, deve-se ", {slot:0}, " H<sub>0</sub>."],
+    answers: ["rejeitar"],
+    bank: ["rejeitar", "aceitar", "manter", "validar", "comprovar", "ignorar"],
+    hint: "p (0.023) < α (0.05) → rejeitar H₀. Lembre-se: em estatística NUNCA 'aceitamos' — só rejeitamos ou não."
+  },
+
+  // -------------------- BLOCO 3: TESTES PARA MÉDIA --------------------
+  {
+    title: "Fase 10 — Teste t para uma amostra",
+    desc: "Identifique o teste apropriado quando σ é desconhecido.",
+    theory: {
+      tag: "Médias",
+      title: "Quando usar t × Z",
+      text: "Para uma média: se a variância populacional σ² é <strong>conhecida</strong>, usa-se teste <strong>Z</strong>. Se é <strong>desconhecida</strong> (e estimada por s²), usa-se teste <strong>t de Student</strong>.",
+      formula: "t = (x̄ − µ<span class='var-sub'>0</span>) / (s/√n) ~ t<span class='var-sub'>n−1</span>",
+      note: "Para n grande (n > 30), t e Z são praticamente equivalentes (TCL). Mas usar t é mais seguro em pequenas amostras."
+    },
+    scenario: "Um pesquisador quer testar se a média de uma amostra de 25 alunos difere de um valor de referência. <strong>A variância populacional é desconhecida</strong>.",
+    template: ["O teste adequado é o teste ", {slot:0}, "."],
+    answers: ["t"],
+    bank: ["t", "Z", "F", "χ²", "U", "W"],
+    hint: "σ desconhecido + n pequeno → teste t (de Student)."
+  },
+
+  {
+    title: "Fase 11 — Teste Z para grandes amostras",
+    desc: "Identifique quando o Z é apropriado.",
+    theory: {
+      tag: "Médias",
+      title: "Teste Z",
+      text: "Usa a <strong>distribuição normal padrão</strong>. Apropriado quando σ é conhecido OU quando n é grande o suficiente (TCL).",
+      formula: "Z = (x̄ − µ<span class='var-sub'>0</span>) / (σ/√n) ~ N(0, 1)",
+      note: "Na prática, σ raramente é conhecido. O Z para amostra grande usa s como aproximação de σ."
+    },
+    scenario: "Um estudo coleta 500 observações e supõe-se que σ é conhecido (= 12).",
+    template: ["Para n grande e σ conhecido, usa-se o teste ", {slot:0}, "."],
+    answers: ["Z"],
+    bank: ["Z", "t", "F", "χ²", "U", "W"],
+    hint: "σ conhecido + n grande → teste Z (estatística com distribuição normal padrão)."
+  },
+
+  {
+    title: "Fase 12 — Amostras pareadas",
+    desc: "Identifique o tipo de delineamento.",
+    theory: {
+      tag: "Médias",
+      title: "Pareado × Independente",
+      text: "<strong>Pareadas</strong> (dependentes): mesmas unidades medidas em 2 condições (antes/depois, gêmeos, esquerdo/direito). <strong>Independentes</strong>: dois grupos distintos, sem ligação 1-a-1.",
+      formula: "pareado ⇒ analisar diferenças d<span class='var-sub'>i</span> = x<span class='var-sub'>i</span><span class='var-sup'>2</span> − x<span class='var-sub'>i</span><span class='var-sup'>1</span>",
+      note: "Pareamento reduz variabilidade — testes pareados são MAIS POTENTES quando há ligação natural."
+    },
+    scenario: "O peso dos mesmos 30 participantes é medido <strong>antes</strong> e <strong>depois</strong> de uma dieta.",
+    template: ["Como são as mesmas unidades nas duas medições, trata-se de amostras ", {slot:0}, "."],
+    answers: ["pareadas"],
+    bank: ["pareadas", "independentes", "aleatórias", "censuradas", "iguais", "homogêneas"],
+    hint: "Mesmas pessoas medidas duas vezes → amostras pareadas (dependentes)."
+  },
+
+  {
+    title: "Fase 13 — Welch vs Student",
+    desc: "Identifique o teste robusto a variâncias desiguais.",
+    theory: {
+      tag: "Médias",
+      title: "Welch para variâncias desiguais",
+      text: "Quando comparamos médias de 2 grupos independentes, há duas variantes do teste t: <strong>Student</strong> (assume σ₁ = σ₂) e <strong>Welch</strong> (não assume).",
+      formula: "Welch usa graus de liberdade aproximados (Satterthwaite)",
+      note: "Quando há dúvida sobre a igualdade de variâncias, prefira Welch — é robusto e tem pouca perda de potência."
+    },
+    scenario: "Em dois grupos com tamanhos e variabilidades muito diferentes, deve-se usar uma versão robusta do teste t.",
+    template: ["Quando as variâncias dos grupos são desiguais, a versão recomendada é a de ", {slot:0}, "."],
+    answers: ["Welch"],
+    bank: ["Welch", "Student", "Fisher", "Tukey", "Satterthwaite", "Bonferroni"],
+    hint: "Welch é o teste t para variâncias DESIGUAIS — versão robusta."
+  },
+
+  // -------------------- BLOCO 4: NÃO-PARAMÉTRICOS E CATEGÓRICOS --------------------
+  {
+    title: "Fase 14 — Quando usar Wilcoxon",
+    desc: "Identifique a alternativa não-paramétrica ao teste t.",
+    theory: {
+      tag: "Não-paramétrico",
+      title: "Wilcoxon × t",
+      text: "O <strong>teste de Wilcoxon</strong> é uma alternativa NÃO-PARAMÉTRICA ao teste t. Baseia-se em POSTOS — não exige normalidade dos dados.",
+      formula: "W = Σ rank|x<span class='var-sub'>i</span> − µ<span class='var-sub'>0</span>|",
+      note: "Use quando: dados são não-normais, amostra pequena, ou variável é ordinal. Tem menor potência se a normalidade fosse de fato verdadeira."
+    },
+    scenario: "Em uma amostra pequena (n = 12), os dados são fortemente assimétricos.",
+    template: ["A alternativa não-paramétrica adequada ao teste t é o teste de ", {slot:0}, "."],
+    answers: ["Wilcoxon"],
+    bank: ["Wilcoxon", "Bartlett", "Levene", "Fisher", "Tukey", "Welch"],
+    hint: "Para dados não-normais e pequenas amostras → Wilcoxon (signed-rank ou rank-sum)."
+  },
+
+  {
+    title: "Fase 15 — Qui-quadrado de independência",
+    desc: "Identifique o teste para duas variáveis categóricas.",
+    theory: {
+      tag: "Categóricas",
+      title: "Qui-quadrado",
+      text: "Testa se duas variáveis categóricas são <strong>independentes</strong>. Compara frequências observadas com esperadas sob H₀ (independência).",
+      formula: "χ² = Σ (O − E)² / E",
+      note: "Pressuposto: frequências esperadas ≥ 5 na maioria das células. Se violado, usar Fisher exato."
+    },
+    scenario: "Em uma pesquisa, deseja-se verificar se SEXO e PREFERÊNCIA POLÍTICA estão associados (ambas categóricas).",
+    template: ["O teste apropriado para essa hipótese é o ", {slot:0}, "."],
+    answers: ["qui-quadrado"],
+    bank: ["qui-quadrado", "t de Student", "Fisher", "Wilcoxon", "Kruskal-Wallis", "ANOVA"],
+    hint: "Independência entre 2 variáveis CATEGÓRICAS → teste qui-quadrado (χ²)."
+  },
+
+  {
+    title: "Fase 16 — Fisher exato",
+    desc: "Identifique o teste para tabelas 2×2 com células pequenas.",
+    theory: {
+      tag: "Categóricas",
+      title: "Fisher exato",
+      text: "Teste <strong>exato</strong> para tabelas 2×2, baseado na distribuição hipergeométrica. Não usa aproximação — válido mesmo com células de frequência muito pequena.",
+      formula: "P(tabela | marginais fixos) — hipergeométrica",
+      note: "Sempre usar Fisher quando alguma frequência esperada é < 5 (qui-quadrado fica inválido nesse caso)."
+    },
+    scenario: "Em um estudo com 25 pacientes, monta-se uma tabela 2×2 (tratamento × cura). Algumas células têm frequência menor que 5.",
+    template: ["O teste mais adequado é o teste exato de ", {slot:0}, "."],
+    answers: ["Fisher"],
+    bank: ["Fisher", "Bonferroni", "Wilcoxon", "Welch", "Levene", "Bartlett"],
+    hint: "Tabela 2×2 com poucos dados → Fisher exato (substitui qui-quadrado nesses casos)."
+  },
+
+  {
+    title: "Fase 17 — ANOVA",
+    desc: "Identifique o teste para comparar 3 ou mais médias.",
+    theory: {
+      tag: "Médias",
+      title: "ANOVA — Análise de Variância",
+      text: "Generaliza o teste t para <strong>K > 2 grupos</strong>. Compara variância ENTRE grupos com a variância DENTRO dos grupos.",
+      formula: "F = (variância entre) / (variância dentro) ~ F<span class='var-sub'>K−1, N−K</span>",
+      note: "Pressupostos: normalidade dos resíduos, homogeneidade de variâncias, independência. Se rejeita H₀, faça pós-hoc (ex: Tukey)."
+    },
+    scenario: "Um experimento compara o efeito de <strong>4 fertilizantes</strong> sobre o crescimento de plantas, medido em centímetros.",
+    template: ["Para comparar simultaneamente as médias dos 4 grupos, usa-se a ", {slot:0}, "."],
+    answers: ["ANOVA"],
+    bank: ["ANOVA", "teste t", "Wilcoxon", "qui-quadrado", "ANCOVA", "Fisher"],
+    hint: "K ≥ 3 grupos com variável contínua → ANOVA (Analysis of Variance)."
+  },
+
+  // -------------------- BLOCO 5: TAMANHO E CORREÇÕES --------------------
+  {
+    title: "Fase 18 — Tamanho da amostra e poder",
+    desc: "Relacione tamanho amostral com poder.",
+    theory: {
+      tag: "Planejamento",
+      title: "Aumentando o poder",
+      text: "O poder de um teste depende de: <strong>α</strong>, <strong>tamanho do efeito</strong>, <strong>variabilidade dos dados</strong> e <strong>n</strong>. Aumentar n é a forma mais comum de aumentar o poder.",
+      formula: "n ↑ ⇒ erro padrão ↓ ⇒ poder ↑",
+      note: "A análise do poder (power analysis) calcula n mínimo para detectar um efeito de tamanho ε com poder desejado (geralmente 0.80)."
+    },
+    scenario: "Um pesquisador percebe que seu estudo terá baixo poder estatístico para detectar o efeito esperado.",
+    template: ["Para aumentar o poder, deve ", {slot:0}, " o tamanho da amostra."],
+    answers: ["aumentar"],
+    bank: ["aumentar", "diminuir", "manter", "estratificar", "balancear", "padronizar"],
+    hint: "Maior n → menor variabilidade da estimativa → MAIOR poder de detectar efeito."
+  },
+
+  {
+    title: "Fase 19 — Correção para múltiplos testes",
+    desc: "Identifique o método clássico para corrigir múltiplas comparações.",
+    theory: {
+      tag: "Múltiplos testes",
+      title: "Bonferroni",
+      text: "Ao fazer m testes simultâneos, a chance de pelo menos UM falso positivo cresce rapidamente. <strong>Bonferroni</strong> ajusta dividindo α por m (ou multiplicando p por m).",
+      formula: "α<span class='var-sub'>ajustado</span> = α / m",
+      note: "Bonferroni é simples e conservador. Alternativas mais potentes: Holm, Benjamini-Hochberg (FDR, mais usado em genômica)."
+    },
+    scenario: "Um pesquisador faz 20 testes t simultâneos. Sem correção, espera-se ~1 falso positivo só por acaso.",
+    template: ["O método clássico mais conhecido para essa correção é o de ", {slot:0}, "."],
+    answers: ["Bonferroni"],
+    bank: ["Bonferroni", "Welch", "Fisher", "Tukey", "Wilcoxon", "Spearman"],
+    hint: "Correção clássica e conservadora para múltiplos testes → Bonferroni (divide α por m)."
+  },
+
+  // -------------------- BOSS FINAL --------------------
+  {
+    title: "Fase 20 — Workflow completo do teste",
+    desc: "Para um cenário realista, identifique as decisões corretas: tipo de erro, sentido do teste, teste adequado e decisão final.",
+    theory: {
+      tag: "Workflow",
+      title: "Fluxo de um teste de hipóteses",
+      text: "<strong>(1)</strong> formular H₀ e H₁, <strong>(2)</strong> escolher α e o teste apropriado, <strong>(3)</strong> calcular a estatística e p-valor, <strong>(4)</strong> decidir comparando p com α.",
+      formula: "Hipóteses → teste → estatística → decisão",
+      note: "A escolha do teste depende: tipo de variável, número de grupos, normalidade, variâncias e tamanho amostral."
+    },
+    scenario: "Um pesquisador compara o IDEB médio entre 4 redes de ensino (4 grupos categóricos). Os dados são razoavelmente normais e as variâncias homogêneas. Adota α = 0.05 e obtém p = 0.001.",
+    template: [
+      "Para comparar 4 médias com normalidade e variâncias iguais, o teste indicado é a ",
+      {slot:0},
+      ".\n\nO p = 0.001 é ",
+      {slot:1},
+      " que α = 0.05, então deve-se ",
+      {slot:2},
+      " H<sub>0</sub>.\n\nSe a conclusão estiver errada (e na verdade as médias forem iguais), terá ocorrido erro do tipo ",
+      {slot:3},
+      "."
+    ],
+    answers: ["ANOVA", "menor", "rejeitar", "I"],
+    bank: [
+      "ANOVA", "teste t", "Wilcoxon", "qui-quadrado",
+      "menor", "maior", "igual",
+      "rejeitar", "aceitar", "manter",
+      "I", "II", "III"
+    ],
+    hint: "4 grupos numéricos com pressupostos OK → ANOVA. p < α → rejeitar H₀. Rejeitar H₀ verdadeira = erro tipo I."
+  }
+];
+
+// =====================================================================
+// ENGINE
+// =====================================================================
+function rng(seed) { let s = seed; return () => { s = (s*9301+49297)%233280; return s/233280; }; }
+
+const estado = {
+  fase: 0, pontos: 0, vidas: 3, tentativas: 0,
+  dicasUsadas: 0, errosTotais: 0, hintUsadaNaFase: false,
+  slotsFilled: []
+};
+
+function trocarTela(id) {
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function iniciarJogo() {
+  Object.assign(estado, {fase:0, pontos:0, vidas:3, tentativas:0, dicasUsadas:0, errosTotais:0});
+  document.getElementById('hud').style.display = 'flex';
+  trocarTela('screen-game');
+  carregarFase();
+}
+function reiniciarJogo() { iniciarJogo(); }
+
+function carregarFase() {
+  const f = FASES[estado.fase];
+  estado.slotsFilled = new Array(f.answers.length).fill(null);
+  estado.tentativas = 0;
+  estado.hintUsadaNaFase = false;
+
+  document.getElementById('hud-level').textContent = estado.fase + 1;
+  document.getElementById('hud-total').textContent = FASES.length;
+  document.getElementById('hud-score').textContent = estado.pontos;
+  document.getElementById('hud-lives').textContent = "♥".repeat(estado.vidas) + "♡".repeat(3 - estado.vidas);
+  document.getElementById('progress-fill').style.width = ((estado.fase) / FASES.length * 100) + '%';
+
+  document.getElementById('level-title').textContent = f.title;
+  document.getElementById('level-desc').textContent = f.desc;
+
+  document.getElementById('theory-tag').textContent   = f.theory.tag;
+  document.getElementById('theory-title').textContent = f.theory.title;
+  document.getElementById('theory-text').innerHTML    = f.theory.text;
+  document.getElementById('theory-formula').innerHTML = f.theory.formula;
+  document.getElementById('theory-note').textContent  = f.theory.note;
+  document.getElementById('scenario-content').innerHTML = f.scenario;
+
+  renderTemplate();
+  renderBank();
+
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('btn-check').style.display = '';
+  document.getElementById('btn-next').style.display = 'none';
+}
+
+function renderTemplate() {
+  const f = FASES[estado.fase];
+  const cont = document.getElementById('code-template');
+  cont.innerHTML = '';
+  f.template.forEach(piece => {
+    if (typeof piece === 'string') {
+      const span = document.createElement('span');
+      // permite tags HTML simples como <sub>
+      span.innerHTML = piece.replace(/\n/g, '<br>');
+      cont.appendChild(span);
+    } else {
+      const slot = document.createElement('span');
+      slot.className = 'slot';
+      slot.dataset.slotIdx = piece.slot;
+      slot.textContent = '_______';
+      if (estado.slotsFilled[piece.slot]) {
+        slot.classList.add('filled');
+        slot.textContent = estado.slotsFilled[piece.slot];
+      }
+      slot.addEventListener('dragover', e => { e.preventDefault(); slot.classList.add('over'); });
+      slot.addEventListener('dragleave', () => slot.classList.remove('over'));
+      slot.addEventListener('drop', e => {
+        e.preventDefault();
+        slot.classList.remove('over');
+        const val = e.dataTransfer.getData('text/plain');
+        if (!val) return;
+        estado.slotsFilled[piece.slot] = val;
+        renderTemplate(); renderBank();
+      });
+      slot.addEventListener('click', () => {
+        if (estado.slotsFilled[piece.slot]) {
+          estado.slotsFilled[piece.slot] = null;
+          renderTemplate(); renderBank();
+        }
+      });
+      cont.appendChild(slot);
+    }
+  });
+}
+
+function renderBank() {
+  const f = FASES[estado.fase];
+  const bank = document.getElementById('block-bank');
+  bank.innerHTML = '';
+  const usados = {};
+  estado.slotsFilled.forEach(v => { if (v) usados[v] = (usados[v]||0) + 1; });
+  const embaralhado = f.bank.slice();
+  const r = rng(estado.fase * 37 + 1);
+  for (let i = embaralhado.length-1; i>0; i--) {
+    const j = Math.floor(r()*(i+1));
+    [embaralhado[i], embaralhado[j]] = [embaralhado[j], embaralhado[i]];
+  }
+  embaralhado.forEach(b => {
+    const el = document.createElement('div');
+    el.className = 'block';
+    if (usados[b]) el.classList.add('used');
+    el.textContent = b;
+    el.draggable = true;
+    el.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', b); el.classList.add('dragging'); });
+    el.addEventListener('dragend', () => el.classList.remove('dragging'));
+    bank.appendChild(el);
+  });
+}
+
+function verificar() {
+  const f = FASES[estado.fase];
+  if (estado.slotsFilled.some(v => v === null)) {
+    mostrarFeedback('error', 'Preencha todas as lacunas antes de verificar.', 'error');
+    return;
+  }
+  const errados = [];
+  f.answers.forEach((ans, i) => { if (estado.slotsFilled[i] !== ans) errados.push(i); });
+
+  document.querySelectorAll('.slot').forEach(s => {
+    const idx = parseInt(s.dataset.slotIdx);
+    s.classList.remove('correct','wrong');
+    if (errados.includes(idx)) s.classList.add('wrong');
+    else if (estado.slotsFilled[idx]) s.classList.add('correct');
+  });
+
+  if (errados.length === 0) {
+    let ganho = 100;
+    if (estado.tentativas === 1) ganho = 60;
+    else if (estado.tentativas >= 2) ganho = 30;
+    if (estado.hintUsadaNaFase) ganho = Math.max(10, ganho - 30);
+    estado.pontos += ganho;
+    document.getElementById('hud-score').textContent = estado.pontos;
+    mostrarFeedback('success',
+      `Acertou! +${ganho} pontos. ` + (estado.fase < FASES.length-1 ? 'Próxima fase liberada.' : 'Você terminou todas as fases.'),
+      'check_circle');
+    document.getElementById('btn-check').style.display = 'none';
+    document.getElementById('btn-next').style.display = '';
+    document.getElementById('progress-fill').style.width = ((estado.fase+1) / FASES.length * 100) + '%';
+    confetti();
+  } else {
+    estado.tentativas++;
+    estado.errosTotais++;
+    estado.vidas--;
+    document.getElementById('hud-lives').textContent = "♥".repeat(Math.max(0,estado.vidas)) + "♡".repeat(3-Math.max(0,estado.vidas));
+    const dirPanel = document.querySelectorAll('.panel-game')[1];
+    if (dirPanel) { dirPanel.classList.add('shake'); setTimeout(()=>dirPanel.classList.remove('shake'), 400); }
+    if (estado.vidas <= 0) {
+      mostrarFeedback('error', `Sem vidas. Resposta correta: ${f.answers.join(', ')}. Avançando...`, 'error');
+      document.getElementById('btn-check').style.display = 'none';
+      document.getElementById('btn-next').style.display = '';
+      estado.vidas = 1;
+    } else {
+      mostrarFeedback('error', `${errados.length} lacuna(s) incorreta(s). Tente de novo.`, 'cancel');
+    }
+  }
+}
+
+function mostrarFeedback(tipo, msg, icone) {
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback show ' + tipo;
+  document.getElementById('feedback-icon').textContent = icone || 'info';
+  document.getElementById('feedback-msg').textContent = msg;
+}
+
+function usarDica() {
+  if (estado.hintUsadaNaFase) { mostrarFeedback('hint', 'Você já usou a dica desta fase.', 'lightbulb'); return; }
+  estado.hintUsadaNaFase = true;
+  estado.dicasUsadas++;
+  estado.pontos = Math.max(0, estado.pontos - 30);
+  document.getElementById('hud-score').textContent = estado.pontos;
+  mostrarFeedback('hint', FASES[estado.fase].hint, 'lightbulb');
+}
+
+function reiniciarFase() {
+  estado.slotsFilled = new Array(FASES[estado.fase].answers.length).fill(null);
+  renderTemplate(); renderBank();
+  document.getElementById('feedback').className = 'feedback';
+}
+
+function proximaFase() {
+  estado.fase++;
+  if (estado.fase >= FASES.length) mostrarFim();
+  else carregarFase();
+}
+
+function mostrarFim() {
+  document.getElementById('hud').style.display = 'none';
+  document.getElementById('end-score').textContent = estado.pontos;
+  document.getElementById('end-level').textContent = FASES.length;
+  document.getElementById('end-hints').textContent = estado.dicasUsadas;
+  document.getElementById('end-errors').textContent = estado.errosTotais;
+  const maxPts = FASES.length * 100;
+  const pct = estado.pontos / maxPts;
+  let stars = '⭐', titulo = 'Bom começo';
+  let msg = 'Você completou todas as fases. Que tal jogar de novo para melhorar a pontuação?';
+  if (pct >= 0.85) { stars = '⭐⭐⭐'; titulo = 'Mestre da inferência'; msg = 'Pontuação excelente. Hipóteses, erros, escolha de teste — tudo dominado.'; }
+  else if (pct >= 0.6) { stars = '⭐⭐'; titulo = 'Muito bem'; msg = 'Você foi bem. Revise as fases em que errou para fechar os conceitos.'; }
+  document.getElementById('end-title').textContent = titulo;
+  document.getElementById('end-msg').textContent = msg;
+  document.getElementById('end-stars').textContent = stars;
+  trocarTela('screen-end');
+  confetti();
+}
+
+function confetti() {
+  const c = document.getElementById('confetti');
+  c.style.display = 'block';
+  c.width = window.innerWidth; c.height = window.innerHeight;
+  const ctx = c.getContext('2d');
+  const peças = [];
+  const cores = ['#1976d2','#3949ab','#2e7d32','#ed6c02','#d32f2f'];
+  for (let i=0; i<70; i++) {
+    peças.push({ x: Math.random()*c.width, y: -20 - Math.random()*200,
+      vx: (Math.random()-0.5)*3, vy: 2 + Math.random()*3,
+      cor: cores[Math.floor(Math.random()*cores.length)],
+      size: 6 + Math.random()*8, rot: Math.random()*Math.PI*2,
+      vr: (Math.random()-0.5)*0.3 });
+  }
+  let frames = 0;
+  function animar() {
+    ctx.clearRect(0,0,c.width,c.height);
+    peças.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.cor; ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+      ctx.restore();
+    });
+    frames++;
+    if (frames < 140) requestAnimationFrame(animar);
+    else { c.style.display = 'none'; ctx.clearRect(0,0,c.width,c.height); }
+  }
+  animar();
+}
+</script>
+</body>
+</html>

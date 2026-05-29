@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>regression Quest · IDEB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500;700&family=Source+Serif+Pro:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary:        #1976d2;
+    --primary-dark:   #1565c0;
+    --primary-light:  #42a5f5;
+    --theory:         #7b1fa2;     /* purple para o card teorico */
+    --theory-soft:    #f3e5f5;
+    --error:          #d32f2f;
+    --warning:        #ed6c02;
+    --success:        #2e7d32;
+    --bg:             #f5f5f5;
+    --paper:          #ffffff;
+    --surface-2:      #fafafa;
+    --divider:        rgba(0,0,0,0.12);
+    --text-primary:   rgba(0,0,0,0.87);
+    --text-secondary: rgba(0,0,0,0.6);
+    --on-primary:     #ffffff;
+    --e1: 0 2px 1px -1px rgba(0,0,0,0.2), 0 1px 1px 0 rgba(0,0,0,0.14), 0 1px 3px 0 rgba(0,0,0,0.12);
+    --e2: 0 3px 1px -2px rgba(0,0,0,0.2), 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12);
+    --e4: 0 2px 4px -1px rgba(0,0,0,0.2), 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12);
+  }
+  body {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg); color: var(--text-primary);
+    min-height: 100vh; -webkit-font-smoothing: antialiased; line-height: 1.5;
+  }
+
+  /* AppBar */
+  .appbar {
+    background: var(--primary); color: var(--on-primary);
+    box-shadow: var(--e4); position: sticky; top: 0; z-index: 100;
+    padding: 0 24px; display: flex; align-items: center; justify-content: space-between;
+    min-height: 64px;
+  }
+  .appbar-brand { display: inline-flex; align-items: center; margin-right: 16px; text-decoration: none; }
+  .appbar-brand img { height: 36px; display: block; border-radius: 8px; background: white; padding: 2px; transition: transform 0.2s; }
+  .appbar-brand:hover img { transform: scale(1.04); }
+  .appbar-left { display: flex; align-items: center; }
+  .appbar-title { display: flex; align-items: center; gap: 12px; font-size: 20px; font-weight: 500; }
+  .appbar-title .material-icons { font-size: 28px; }
+  .appbar-title .sub { font-size: 12px; font-weight: 400; opacity: 0.85; margin-left: 8px; }
+  .hud { display: flex; gap: 8px; align-items: center; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.16); color: var(--on-primary); padding: 6px 12px; border-radius: 16px; font-size: 13px; font-weight: 500; }
+  .chip .material-icons { font-size: 18px; }
+  .chip-progress { background: rgba(255,255,255,0.16); width: 140px; height: 4px; border-radius: 2px; overflow: hidden; margin-left: 8px; }
+  .chip-progress > div { height: 100%; background: var(--on-primary); width: 0%; transition: width 0.4s; }
+
+  .screen { display: none; padding: 32px 24px 64px; }
+  .screen.active { display: block; }
+
+  /* Start */
+  #screen-start {
+    text-align: center; padding-top: 80px; min-height: 85vh;
+    display: none; flex-direction: column; align-items: center;
+  }
+  #screen-start.active { display: flex; }
+  #screen-start h1 { font-size: 60px; font-weight: 300; letter-spacing: -0.5px; color: var(--text-primary); margin-bottom: 16px; }
+  #screen-start h1 .accent { color: var(--primary); font-weight: 500; }
+  #screen-start .lead { font-size: 16px; color: var(--text-secondary); max-width: 660px; margin: 0 auto 8px; line-height: 1.6; }
+  #screen-start .lead code { background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px; font-family: 'Roboto Mono', monospace; font-size: 13px; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px; border: none; cursor: pointer; font-family: inherit;
+    font-weight: 500; font-size: 14px; letter-spacing: 0.02857em;
+    text-transform: uppercase; padding: 8px 22px; min-height: 36px;
+    border-radius: 4px; transition: all 0.2s;
+    position: relative; overflow: hidden; user-select: none;
+  }
+  .btn .material-icons { font-size: 18px; }
+  .btn-contained { background: var(--primary); color: var(--on-primary); box-shadow: var(--e2); }
+  .btn-contained:hover { background: var(--primary-dark); box-shadow: var(--e4); }
+  .btn-text { background: transparent; color: var(--primary); padding: 6px 16px; }
+  .btn-text:hover { background: rgba(25,118,210,0.08); }
+  .btn-fab { margin-top: 40px; padding: 14px 40px; font-size: 15px; min-height: 48px; border-radius: 8px; }
+  .btn::after {
+    content: ''; position: absolute; top: 50%; left: 50%;
+    width: 0; height: 0; border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease;
+    pointer-events: none;
+  }
+  .btn-text::after { background: rgba(25,118,210,0.2); }
+  .btn:active::after { width: 220%; height: 220%; transition: 0s; }
+
+  .card { background: var(--paper); border-radius: 8px; box-shadow: var(--e1); padding: 24px; }
+  .card-feature { background: var(--paper); border-radius: 8px; box-shadow: var(--e1); padding: 28px; text-align: left; }
+  .feature-icon {
+    width: 48px; height: 48px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: rgba(25,118,210,0.12); color: var(--primary); margin-bottom: 16px;
+  }
+  .feature-icon .material-icons { font-size: 28px; }
+  .card-feature h3 { font-size: 18px; font-weight: 500; margin-bottom: 8px; color: var(--text-primary); }
+  .card-feature p { font-size: 14px; color: var(--text-secondary); line-height: 1.55; }
+  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 56px; max-width: 960px; width: 100%; }
+
+  /* Game grid */
+  .game-grid { display: grid; grid-template-columns: 1fr 1.05fr; gap: 24px; max-width: 1480px; margin: 0 auto; }
+  .panel-title {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 500; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-secondary); margin-bottom: 16px;
+  }
+  .panel-title .material-icons { font-size: 18px; color: var(--primary); }
+  .level-title { font-size: 22px; font-weight: 500; color: var(--text-primary); margin-bottom: 4px; }
+  .level-desc { color: var(--text-secondary); font-size: 14px; line-height: 1.55; margin-bottom: 20px; }
+
+  /* Theory card */
+  .theory-card {
+    background: var(--theory-soft);
+    border-left: 4px solid var(--theory);
+    border-radius: 4px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+  }
+  .theory-head {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--theory);
+    margin-bottom: 10px;
+  }
+  .theory-head .material-icons { font-size: 18px; }
+  .theory-title { font-size: 16px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px; }
+  .theory-text { font-size: 14px; color: var(--text-primary); line-height: 1.6; margin-bottom: 12px; }
+  .theory-text strong { color: var(--theory); font-weight: 500; }
+
+  .formula {
+    background: #fff;
+    border: 1px solid rgba(123,31,162,0.2);
+    border-radius: 4px;
+    padding: 14px 18px;
+    text-align: center;
+    font-family: 'Source Serif Pro', Georgia, serif;
+    font-size: 18px; font-style: italic;
+    color: var(--text-primary);
+    margin: 8px 0 12px;
+    letter-spacing: 0.5px;
+  }
+  .formula .var-sub { font-size: 11px; vertical-align: sub; font-style: normal; }
+  .formula .var-sup { font-size: 11px; vertical-align: super; font-style: normal; }
+
+  .theory-note {
+    font-size: 13px; color: var(--text-secondary);
+    line-height: 1.55;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(123,31,162,0.2);
+  }
+
+  /* Expected output */
+  .expected {
+    margin-top: 8px; padding: 12px 16px;
+    background: var(--surface-2); border-radius: 4px;
+    border-left: 3px solid var(--success);
+  }
+  .expected-title {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-secondary); font-weight: 600; margin-bottom: 6px;
+  }
+  .expected-content {
+    font-family: 'Roboto Mono', monospace; font-size: 12.5px;
+    color: var(--text-primary); white-space: pre-wrap;
+    line-height: 1.6;
+  }
+
+  /* Code block + slots */
+  .code-block {
+    background: #fafafa; color: #212121;
+    padding: 20px 22px; border-radius: 4px;
+    border: 1px solid var(--divider);
+    font-family: 'Roboto Mono', 'SF Mono', 'Monaco', monospace;
+    font-size: 14px; line-height: 2.0;
+    white-space: pre-wrap;
+    margin-bottom: 20px; min-height: 130px;
+  }
+  .slot {
+    display: inline-block; min-width: 96px;
+    padding: 3px 12px; margin: 0 3px;
+    background: #fff; border: 1.5px dashed #9e9e9e;
+    border-radius: 4px; color: #9e9e9e;
+    text-align: center; font-style: italic;
+    font-family: 'Roboto Mono', monospace;
+    vertical-align: middle; transition: all 0.15s;
+  }
+  .slot.over    { background: rgba(25,118,210,0.08); border-color: var(--primary); border-style: solid; }
+  .slot.filled  { background: rgba(25,118,210,0.08); border: 1.5px solid var(--primary); color: var(--primary-dark); font-style: normal; font-weight: 500; cursor: pointer; }
+  .slot.wrong   { background: rgba(211,47,47,0.08); border: 1.5px solid var(--error); color: var(--error); }
+  .slot.correct { background: rgba(46,125,50,0.08); border: 1.5px solid var(--success); color: var(--success); }
+
+  .bank-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); margin-bottom: 12px; font-weight: 500; }
+  .bank {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    min-height: 88px; padding: 16px;
+    background: var(--surface-2); border-radius: 4px; border: 1px solid var(--divider);
+  }
+  .block {
+    display: inline-flex; align-items: center; padding: 8px 14px;
+    background: var(--paper); color: var(--text-primary);
+    border: 1px solid var(--divider); border-radius: 16px;
+    font-family: 'Roboto Mono', monospace; font-size: 13px; font-weight: 500;
+    cursor: grab; user-select: none;
+    transition: all 0.15s; box-shadow: var(--e1);
+  }
+  .block:hover { background: var(--surface-2); box-shadow: var(--e2); transform: translateY(-1px); }
+  .block:active { cursor: grabbing; }
+  .block.dragging { opacity: 0.4; }
+  .block.used { display: none; }
+
+  .actions { display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; justify-content: flex-end; }
+
+  .feedback {
+    margin-top: 16px; padding: 12px 16px; border-radius: 4px;
+    font-size: 14px; line-height: 1.5;
+    border-left: 4px solid; display: none; align-items: flex-start; gap: 10px;
+  }
+  .feedback.show { display: flex; }
+  .feedback.success { background: #edf7ed; color: #1e4620; border-color: var(--success); }
+  .feedback.error   { background: #fdecea; color: #5f2120; border-color: var(--error); }
+  .feedback.hint    { background: #fff4e5; color: #663c00; border-color: var(--warning); }
+  .feedback .material-icons { font-size: 22px; }
+  .feedback.success .material-icons { color: var(--success); }
+  .feedback.error .material-icons   { color: var(--error); }
+  .feedback.hint .material-icons    { color: var(--warning); }
+
+  #screen-end { text-align: center; padding-top: 80px; min-height: 80vh; }
+  #screen-end h1 { font-size: 48px; font-weight: 300; color: var(--text-primary); margin-bottom: 12px; letter-spacing: -0.5px; }
+  #screen-end .end-sub { font-size: 16px; color: var(--text-secondary); max-width: 560px; margin: 0 auto; }
+  .final-score-card { background: var(--paper); border-radius: 8px; box-shadow: var(--e2); padding: 32px; margin: 32px auto; max-width: 480px; }
+  .final-score { font-size: 72px; font-weight: 300; color: var(--primary); margin: 8px 0; letter-spacing: -2px; }
+  .stars { font-size: 36px; margin: 8px 0 16px; letter-spacing: 10px; }
+  .final-stats { display: flex; justify-content: center; gap: 56px; flex-wrap: wrap; }
+  .final-stat .v { font-size: 28px; font-weight: 500; color: var(--text-primary); }
+  .final-stat .l { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .card, .panel-game { animation: fadeIn 0.3s ease; }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  .shake { animation: shake 0.35s; }
+  #confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 200; display: none; }
+
+  @media (max-width: 960px) {
+    .game-grid { grid-template-columns: 1fr; }
+    .features-grid { grid-template-columns: 1fr; }
+    .hud .chip-progress { display: none; }
+    #screen-start h1 { font-size: 40px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="appbar">
+  <div class="appbar-left">
+    <a href="index.html" class="appbar-brand" title="Voltar ao portal Evante">
+      <img src="Evante-01.jpg" alt="Evante" />
+    </a>
+    <div class="appbar-title">
+      <span class="material-icons">trending_up</span>
+      regression Quest <span class="sub">· IDEB</span>
+    </div>
+  </div>
+  <div class="hud" id="hud" style="display:none;">
+    <div class="chip"><span class="material-icons">flag</span><span id="hud-level">1</span>/<span id="hud-total">20</span></div>
+    <div class="chip-progress"><div id="progress-fill"></div></div>
+    <div class="chip"><span class="material-icons">stars</span><span id="hud-score">0</span></div>
+    <div class="chip"><span class="material-icons">favorite</span><span id="hud-lives">3</span></div>
+  </div>
+</header>
+
+<section id="screen-start" class="screen active">
+  <h1>regression <span class="accent">Quest</span></h1>
+  <p class="lead">Aprenda <strong>regressão linear simples e múltipla</strong> integrando teoria e prática em R.</p>
+  <p class="lead">20 fases: cada uma traz o <em>conceito</em> (fórmula matemática e interpretação) e pede para você montar o código R que aplica esse conceito ao dataset <code>ideb</code>.</p>
+
+  <button class="btn btn-contained btn-fab" onclick="iniciarJogo()">
+    <span class="material-icons">play_arrow</span>Começar
+  </button>
+
+  <div class="features-grid">
+    <div class="card-feature">
+      <div class="feature-icon"><span class="material-icons">functions</span></div>
+      <h3>Estude a teoria</h3>
+      <p>Cada fase mostra o conceito (fórmula matemática + interpretação) em um card destacado.</p>
+    </div>
+    <div class="card-feature">
+      <div class="feature-icon"><span class="material-icons">code</span></div>
+      <h3>Aplique em R</h3>
+      <p>Encaixe funções (<code>lm</code>, <code>summary</code>, <code>confint</code>, <code>vif</code>...) para implementar o conceito.</p>
+    </div>
+    <div class="card-feature">
+      <div class="feature-icon"><span class="material-icons">school</span></div>
+      <h3>Progrida</h3>
+      <p>RLS → inferência → RLM → diagnósticos. Ao final, você terá visto a maioria dos métodos da disciplina.</p>
+    </div>
+  </div>
+</section>
+
+<section id="screen-game" class="screen">
+  <div class="game-grid">
+    <div class="card panel-game">
+      <div class="panel-title"><span class="material-icons">menu_book</span>Conceito</div>
+      <div class="level-title" id="level-title">Fase 1</div>
+      <div class="level-desc" id="level-desc"></div>
+
+      <div class="theory-card">
+        <div class="theory-head"><span class="material-icons">functions</span><span id="theory-tag">Teoria</span></div>
+        <div class="theory-title" id="theory-title"></div>
+        <div class="theory-text" id="theory-text"></div>
+        <div class="formula" id="theory-formula"></div>
+        <div class="theory-note" id="theory-note"></div>
+      </div>
+
+      <div class="expected">
+        <div class="expected-title">Resultado esperado em R</div>
+        <div class="expected-content" id="expected-content"></div>
+      </div>
+    </div>
+
+    <div class="card panel-game">
+      <div class="panel-title"><span class="material-icons">terminal</span>Monte o código R</div>
+      <div class="code-block" id="code-template"></div>
+
+      <div class="bank-title">Blocos disponíveis · arraste para os slots</div>
+      <div class="bank" id="block-bank"></div>
+
+      <div class="feedback" id="feedback">
+        <span class="material-icons" id="feedback-icon">info</span>
+        <span id="feedback-msg"></span>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-text" onclick="usarDica()"><span class="material-icons">lightbulb</span>Dica · -30</button>
+        <button class="btn btn-text" onclick="reiniciarFase()"><span class="material-icons">refresh</span>Reiniciar</button>
+        <button class="btn btn-contained" id="btn-check" onclick="verificar()"><span class="material-icons">check_circle</span>Verificar</button>
+        <button class="btn btn-contained" id="btn-next" onclick="proximaFase()" style="display:none;">Próxima<span class="material-icons">arrow_forward</span></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="screen-end" class="screen">
+  <h1 id="end-title">Parabéns</h1>
+  <p class="end-sub" id="end-msg">Você completou todas as fases.</p>
+  <div class="final-score-card">
+    <div class="stars" id="end-stars">⭐⭐⭐</div>
+    <div class="final-score" id="end-score">0</div>
+    <div class="final-stats">
+      <div class="final-stat"><div class="v" id="end-level">20</div><div class="l">Fases</div></div>
+      <div class="final-stat"><div class="v" id="end-hints">0</div><div class="l">Dicas</div></div>
+      <div class="final-stat"><div class="v" id="end-errors">0</div><div class="l">Erros</div></div>
+    </div>
+  </div>
+  <button class="btn btn-contained btn-fab" onclick="reiniciarJogo()">
+    <span class="material-icons">replay</span>Jogar de novo
+  </button>
+</section>
+
+<canvas id="confetti"></canvas>
+
+<script>
+// =====================================================================
+// 20 FASES — Regressão linear: teoria + prática
+// =====================================================================
+const FASES = [
+  // -------------------- BLOCO 1: RLS --------------------
+  {
+    title: "Fase 1 — Ajustar regressão linear simples",
+    desc: "Modele a nota IDEB em função da taxa de aprovação.",
+    theory: {
+      tag: "RLS · Modelo",
+      title: "Regressão Linear Simples",
+      text: "Buscamos uma reta que relacione uma variável <strong>resposta Y</strong> (IDEB) com uma variável <strong>explicativa X</strong> (aprovação), assumindo um erro aleatório ε.",
+      formula: "Y<span class='var-sub'>i</span> = β<span class='var-sub'>0</span> + β<span class='var-sub'>1</span>X<span class='var-sub'>i</span> + ε<span class='var-sub'>i</span>",
+      note: "β₀ = intercepto · β₁ = inclinação · ε ~ N(0, σ²). Em R, a função lm() ajusta o modelo pelo método dos mínimos quadrados ordinários (OLS)."
+    },
+    expected: "Call:\nlm(formula = ideb ~ aprovacao, data = ideb)\n\nCoefficients:\n(Intercept)    aprovacao  \n   -1.8523       0.0825  ",
+    template: ["modelo <- ", {slot:0}, "(ideb ~ aprovacao, data = ideb)\nmodelo"],
+    answers: ["lm"],
+    bank: ["lm", "glm", "lme", "lmer", "aov", "regress"],
+    hint: "lm() = linear model. glm() é para modelos lineares generalizados (Poisson, logística...)."
+  },
+
+  {
+    title: "Fase 2 — Resumo estatístico do modelo",
+    desc: "Exiba o sumário completo: coeficientes, p-valores, R², F-stat e resíduos.",
+    theory: {
+      tag: "Inferência",
+      title: "summary() — anatomia do output",
+      text: "O <strong>sumário</strong> traz tudo o que precisamos: estimativas dos coeficientes, erros-padrão, estatísticas t, p-valores, R² e a estatística F do teste global.",
+      formula: "summary(modelo) → Coefficients · R² · F-test",
+      note: "O sumário é a porta de entrada para a inferência: cada estimativa β̂ vem acompanhada de um teste t para H₀: βⱼ = 0."
+    },
+    expected: "Call: ...\nResiduals: Min  1Q  Median  3Q  Max\nCoefficients:\n            Estimate  Std.Error  t value  Pr(>|t|)\n(Intercept) -1.8523    0.4571    -4.05   1.2e-04 ***\naprovacao    0.0825    0.0054    15.28   < 2e-16 ***\n\nResidual standard error: 0.84 on 238 df\nMultiple R-squared: 0.495\nF-statistic: 233.6 on 1 and 238 DF, p-value: < 2.2e-16",
+    template: [{slot:0}, "(modelo)"],
+    answers: ["summary"],
+    bank: ["summary", "print", "show", "str", "head", "anova"],
+    hint: "summary() de um objeto lm imprime a tabela completa. print() mostra apenas a fórmula e os coeficientes."
+  },
+
+  {
+    title: "Fase 3 — Extrair os coeficientes",
+    desc: "Obtenha apenas o vetor de coeficientes β̂₀ e β̂₁.",
+    theory: {
+      tag: "RLS · Estimação",
+      title: "Estimador de Mínimos Quadrados (OLS)",
+      text: "Os coeficientes são estimados minimizando a <strong>soma dos quadrados dos resíduos</strong>: Σ(yᵢ − ŷᵢ)².",
+      formula: "β̂ = (X'X)<span class='var-sup'>−1</span> X'Y",
+      note: "Em R, coef() ou coefficients() devolvem o vetor (Intercept), aprovacao, ..."
+    },
+    expected: "(Intercept)   aprovacao \n   -1.85230     0.08246 ",
+    template: [{slot:0}, "(modelo)"],
+    answers: ["coef"],
+    bank: ["coef", "coefficients", "summary", "betas", "fitted", "residuals"],
+    hint: "coef() é o atalho mais limpo. coefficients() faz o mesmo (alias)."
+  },
+
+  {
+    title: "Fase 4 — Coeficiente de determinação (R²)",
+    desc: "Pegue o R² do modelo direto do summary().",
+    theory: {
+      tag: "RLS · Qualidade do ajuste",
+      title: "Coeficiente de determinação R²",
+      text: "O <strong>R²</strong> mede a proporção da variabilidade de Y explicada pelo modelo. Varia de 0 a 1.",
+      formula: "R² = 1 − SQR / SQT = SQE / SQT",
+      note: "SQT = total · SQE = explicada · SQR = residual. R² alto NÃO garante bom modelo (vide pressupostos)."
+    },
+    expected: "[1] 0.4951",
+    template: ["summary(modelo)$", {slot:0}],
+    answers: ["r.squared"],
+    bank: ["r.squared", "adj.r.squared", "fstatistic", "sigma", "residuals", "fitted.values"],
+    hint: "Atenção ao ponto: o slot R² é r.squared (com ponto, não underscore)."
+  },
+
+  {
+    title: "Fase 5 — Resíduos do modelo",
+    desc: "Extraia os resíduos e plote um histograma.",
+    theory: {
+      tag: "RLS · Diagnóstico",
+      title: "Resíduos",
+      text: "O <strong>resíduo</strong> é a diferença entre o valor observado e o valor ajustado pelo modelo — é a parte que o modelo não explicou.",
+      formula: "e<span class='var-sub'>i</span> = Y<span class='var-sub'>i</span> − Ŷ<span class='var-sub'>i</span>",
+      note: "Sob os pressupostos do MRLM, os resíduos devem ter média zero, variância constante e ser aproximadamente normais."
+    },
+    expected: "      1       2       3 ...\n  0.245  -0.183   0.412 ...",
+    template: ["e <- ", {slot:0}, "(modelo)\nhist(e)"],
+    answers: ["residuals"],
+    bank: ["residuals", "resid", "fitted", "predict", "errors", "epsilon"],
+    hint: "residuals() ou seu apelido resid() devolve um vetor com os e_i. Atenção: resid funciona, mas residuals é o nome completo."
+  },
+
+  {
+    title: "Fase 6 — Valores ajustados (Ŷ)",
+    desc: "Obtenha os valores previstos pelo modelo para cada observação.",
+    theory: {
+      tag: "RLS · Predição",
+      title: "Valores ajustados",
+      text: "Para cada Xᵢ, o modelo produz uma <strong>previsão Ŷᵢ</strong> sobre a reta ajustada.",
+      formula: "Ŷ<span class='var-sub'>i</span> = β̂<span class='var-sub'>0</span> + β̂<span class='var-sub'>1</span>X<span class='var-sub'>i</span>",
+      note: "Relação entre os três: Y = Ŷ + e. fitted() devolve Ŷ usando os MESMOS dados do ajuste."
+    },
+    expected: "       1        2        3 ...\n   4.715    5.029    7.281 ...",
+    template: ["y_hat <- ", {slot:0}, "(modelo)"],
+    answers: ["fitted"],
+    bank: ["fitted", "predict", "residuals", "coef", "summary", "values"],
+    hint: "fitted() = Ŷ nos dados originais. predict() permite NOVOS dados (próxima fase)."
+  },
+
+  {
+    title: "Fase 7 — Predição em novos dados",
+    desc: "Preveja o IDEB para escolas hipotéticas com aprovação = 85% e 95%.",
+    theory: {
+      tag: "RLS · Predição",
+      title: "predict() para novos X",
+      text: "Para prever a resposta em valores NÃO observados, passamos um data.frame com as novas covariáveis para predict().",
+      formula: "Ŷ<span class='var-sub'>novo</span> = β̂<span class='var-sub'>0</span> + β̂<span class='var-sub'>1</span>X<span class='var-sub'>novo</span>",
+      note: "O newdata deve ter colunas com os MESMOS NOMES das variáveis do modelo (aprovacao, no caso)."
+    },
+    expected: "       1        2 \n   5.148    5.973 ",
+    template: ["novas <- data.frame(aprovacao = c(85, 95))\n", {slot:0}, "(modelo, newdata = novas)"],
+    answers: ["predict"],
+    bank: ["predict", "fitted", "forecast", "augment", "extrapolate", "interpolate"],
+    hint: "fitted() não aceita newdata — para novos valores, sempre predict()."
+  },
+
+  // -------------------- BLOCO 2: INFERÊNCIA --------------------
+  {
+    title: "Fase 8 — Intervalo de confiança para os coeficientes",
+    desc: "Calcule o IC de 95% para β̂₀ e β̂₁.",
+    theory: {
+      tag: "Inferência",
+      title: "Intervalo de confiança",
+      text: "Para cada estimativa β̂ⱼ construímos um intervalo que, em <strong>repetidas amostras</strong>, contém o verdadeiro βⱼ em (1−α)×100% das vezes.",
+      formula: "β̂<span class='var-sub'>j</span> ± t<span class='var-sub'>α/2, n−p</span> · SE(β̂<span class='var-sub'>j</span>)",
+      note: "Se o IC NÃO contém zero, rejeitamos H₀: βⱼ = 0 ao nível α. Em R, confint(modelo, level = 0.95)."
+    },
+    expected: "                 2.5 %      97.5 %\n(Intercept)  -2.75295    -0.95165\naprovacao     0.07186     0.09309",
+    template: [{slot:0}, "(modelo, level = 0.95)"],
+    answers: ["confint"],
+    bank: ["confint", "confidence", "ci", "summary", "vcov", "predict"],
+    hint: "confint() devolve o IC dos coeficientes. vcov() devolve a matriz de variância-covariância."
+  },
+
+  {
+    title: "Fase 9 — p-valor de cada coeficiente",
+    desc: "Extraia a coluna de p-valores do summary().",
+    theory: {
+      tag: "Inferência",
+      title: "Teste t para cada coeficiente",
+      text: "Para cada βⱼ testamos H₀: βⱼ = 0 contra H₁: βⱼ ≠ 0. A estatística t segue uma distribuição t de Student com n−p graus de liberdade.",
+      formula: "t = β̂<span class='var-sub'>j</span> / SE(β̂<span class='var-sub'>j</span>) ~ t<span class='var-sub'>n−p</span>",
+      note: "No R, o p-valor aparece na coluna 'Pr(>|t|)' do summary(). Pequeno (< 0.05) → evidência contra H₀."
+    },
+    expected: "(Intercept)     aprovacao \n  1.236e-04     2.183e-37 ",
+    template: ["summary(modelo)$coefficients[, ", {slot:0}, "]"],
+    answers: ['"Pr(>|t|)"'],
+    bank: ['"Pr(>|t|)"', '"Estimate"', '"Std. Error"', '"t value"', '"p.value"', '"signif"'],
+    hint: "O nome exato da coluna é 'Pr(>|t|)' — incluindo os caracteres especiais."
+  },
+
+  {
+    title: "Fase 10 — Teste F global (ANOVA)",
+    desc: "Verifique se o modelo, como um todo, é estatisticamente significativo.",
+    theory: {
+      tag: "Inferência",
+      title: "Análise de Variância",
+      text: "A ANOVA decompõe SQT em SQE (explicada) e SQR (residual). O <strong>teste F global</strong> verifica se ao menos um β é diferente de zero.",
+      formula: "F = (SQE/p) / (SQR/(n−p−1)) ~ F<span class='var-sub'>p, n−p−1</span>",
+      note: "p-valor pequeno → modelo é melhor que o modelo nulo (só intercepto). anova(modelo) imprime a tabela ANOVA."
+    },
+    expected: "Analysis of Variance Table\n\nResponse: ideb\n           Df  Sum Sq  Mean Sq  F value     Pr(>F)\naprovacao   1  163.62   163.62    233.6  < 2.2e-16 ***\nResiduals 238  166.74     0.70",
+    template: [{slot:0}, "(modelo)"],
+    answers: ["anova"],
+    bank: ["anova", "aov", "summary", "ftest", "var.test", "manova"],
+    hint: "anova(modelo) com 1 argumento mostra a tabela ANOVA. Com 2 modelos, faz teste de comparação (próxima fase)."
+  },
+
+  {
+    title: "Fase 11 — Predição com intervalo de confiança",
+    desc: "Preveja com intervalo de confiança para a média da resposta.",
+    theory: {
+      tag: "Predição",
+      title: "IC para a média vs. predição",
+      text: "Há dois intervalos possíveis: <strong>confidence</strong> (para a média de Y dado X) e <strong>prediction</strong> (para uma OBSERVAÇÃO individual, maior amplitude).",
+      formula: "IC<span class='var-sub'>conf</span> ⊂ IC<span class='var-sub'>pred</span>",
+      note: "Confidence = incerteza só na reta. Prediction = incerteza na reta + erro individual ε."
+    },
+    expected: "         fit      lwr      upr\n1     5.148    4.987    5.309\n2     5.973    5.797    6.149",
+    template: ["novas <- data.frame(aprovacao = c(85, 95))\npredict(modelo, newdata = novas,\n        interval = ", {slot:0}, ")"],
+    answers: ['"confidence"'],
+    bank: ['"confidence"', '"prediction"', '"none"', '"both"', '"ci"', '"interval"'],
+    hint: "Para a MÉDIA, use 'confidence'. Para uma única observação, 'prediction' (intervalo maior)."
+  },
+
+  // -------------------- BLOCO 3: RLM --------------------
+  {
+    title: "Fase 12 — Regressão linear múltipla",
+    desc: "Modele o IDEB em função de aprovação, rede e ano (3 preditores).",
+    theory: {
+      tag: "RLM · Modelo",
+      title: "Regressão Linear Múltipla",
+      text: "Generalização do modelo simples para <strong>vários preditores</strong>. Cada βⱼ é o efeito marginal de Xⱼ <em>mantendo as outras constantes</em>.",
+      formula: "Y = β<span class='var-sub'>0</span> + β<span class='var-sub'>1</span>X<span class='var-sub'>1</span> + β<span class='var-sub'>2</span>X<span class='var-sub'>2</span> + … + β<span class='var-sub'>p</span>X<span class='var-sub'>p</span> + ε",
+      note: "Na fórmula do R, separe preditores ADITIVOS com '+'. Use '*' para incluir interação."
+    },
+    expected: "Coefficients:\n(Intercept)  aprovacao  redeFederal  redeMunicipal  redePrivada  ano\n  -120.4500    0.0610      1.4521      -0.2104        2.0125    0.0612",
+    template: ["mod_mult <- lm(ideb ~ aprovacao ", {slot:0}, " rede ", {slot:1}, " ano,\n               data = ideb)"],
+    answers: ["+", "+"],
+    bank: ["+", "*", ":", "|", "-", "/"],
+    hint: "Use '+' entre preditores aditivos. '*' incluiria também as interações entre eles."
+  },
+
+  {
+    title: "Fase 13 — Comparar modelos aninhados (teste F)",
+    desc: "Verifique se adicionar 'rede' melhora significativamente o modelo simples.",
+    theory: {
+      tag: "Seleção",
+      title: "Modelos aninhados",
+      text: "Dois modelos são <strong>aninhados</strong> quando um é caso particular do outro. O teste F de modelos aninhados verifica se os preditores extras adicionam valor significativo.",
+      formula: "F = ((SQR<span class='var-sub'>red</span> − SQR<span class='var-sub'>full</span>) / Δp) / (SQR<span class='var-sub'>full</span> / (n−p<span class='var-sub'>full</span>))",
+      note: "anova(modelo_pequeno, modelo_grande) faz o teste. Se p-valor < α, mantenha o modelo maior."
+    },
+    expected: "Analysis of Variance Table\n\nModel 1: ideb ~ aprovacao\nModel 2: ideb ~ aprovacao + rede\n  Res.Df    RSS Df Sum of Sq      F   Pr(>F)\n1    238 166.74\n2    235 124.18  3    42.56  26.86  < 2e-16 ***",
+    template: [{slot:0}, "(modelo, mod_mult)"],
+    answers: ["anova"],
+    bank: ["anova", "AIC", "BIC", "summary", "compare", "lrtest"],
+    hint: "anova() com 2+ modelos faz teste F de comparação. AIC()/BIC() comparam SEM teste (só valor menor é melhor)."
+  },
+
+  {
+    title: "Fase 14 — R² ajustado (RLM)",
+    desc: "Compare R² e R² ajustado. Qual usar em RLM?",
+    theory: {
+      tag: "RLM · Qualidade do ajuste",
+      title: "R² ajustado",
+      text: "Em RLM, o R² <strong>sempre cresce</strong> com mais preditores (mesmo aleatórios). O R² ajustado penaliza pela complexidade.",
+      formula: "R²<span class='var-sub'>adj</span> = 1 − (1 − R²) · (n − 1) / (n − p − 1)",
+      note: "Use R²_adj para comparar modelos com nº diferente de preditores. Pode até diminuir se a variável extra não ajudar."
+    },
+    expected: "[1] 0.6112",
+    template: ["summary(mod_mult)$", {slot:0}],
+    answers: ["adj.r.squared"],
+    bank: ["adj.r.squared", "r.squared", "fstatistic", "sigma", "df", "residuals"],
+    hint: "O R² ajustado é adj.r.squared. R² puro é r.squared."
+  },
+
+  {
+    title: "Fase 15 — Interação entre variáveis",
+    desc: "Ajuste um modelo com interação entre aprovação e rede.",
+    theory: {
+      tag: "RLM · Interações",
+      title: "Termo de interação",
+      text: "Uma <strong>interação</strong> permite que o efeito de X₁ DEPENDA do valor de X₂. No R, o operador '*' inclui efeitos principais + interação.",
+      formula: "Y = β<span class='var-sub'>0</span> + β<span class='var-sub'>1</span>X<span class='var-sub'>1</span> + β<span class='var-sub'>2</span>X<span class='var-sub'>2</span> + β<span class='var-sub'>3</span>(X<span class='var-sub'>1</span>·X<span class='var-sub'>2</span>) + ε",
+      note: "A '~ A * B' equivale a '~ A + B + A:B'. Use ':' se quiser SÓ a interação (raro)."
+    },
+    expected: "Coefficients incluindo aprovacao, redeXxx,\n                       aprovacao:redeXxx (interação)",
+    template: ["mod_inter <- lm(ideb ~ aprovacao ", {slot:0}, " rede, data = ideb)"],
+    answers: ["*"],
+    bank: ["*", "+", ":", "|", "-", "&"],
+    hint: "'*' = efeitos principais + interação. ':' = só a interação. '+' = só efeitos principais."
+  },
+
+  // -------------------- BLOCO 4: DIAGNÓSTICO --------------------
+  {
+    title: "Fase 16 — Diagnóstico visual (4 gráficos)",
+    desc: "Produza os 4 gráficos diagnósticos clássicos lado a lado.",
+    theory: {
+      tag: "Diagnóstico",
+      title: "Pressupostos do MRLM",
+      text: "<strong>(1)</strong> linearidade, <strong>(2)</strong> independência, <strong>(3)</strong> homocedasticidade (variância constante), <strong>(4)</strong> normalidade dos resíduos.",
+      formula: "ε<span class='var-sub'>i</span> ~ N(0, σ²) i.i.d.",
+      note: "plot(modelo) gera: 1) resíduos × ajustados (linearidade), 2) Q-Q (normalidade), 3) scale-location (homocedasticidade), 4) leverage (outliers/pontos influentes)."
+    },
+    expected: "4 gráficos (par mfrow 2×2):\n[1] Residuals vs Fitted\n[2] Normal Q-Q\n[3] Scale-Location\n[4] Residuals vs Leverage",
+    template: ["par(mfrow = c(2, 2))\nplot(", {slot:0}, ")"],
+    answers: ["mod_mult"],
+    bank: ["mod_mult", "modelo", "ideb", "residuals(mod_mult)", "summary(mod_mult)", "coef(mod_mult)"],
+    hint: "plot.lm aceita o objeto lm direto. Não passe residuals() — o método já cuida disso."
+  },
+
+  {
+    title: "Fase 17 — Teste de normalidade dos resíduos",
+    desc: "Aplique Shapiro-Wilk aos resíduos.",
+    theory: {
+      tag: "Diagnóstico",
+      title: "Shapiro-Wilk para normalidade",
+      text: "Teste formal para a hipótese H₀: os resíduos seguem distribuição normal. Rejeitamos H₀ se p-valor < α.",
+      formula: "W = (Σ a<span class='var-sub'>i</span> e<span class='var-sub'>(i)</span>)² / Σ(e<span class='var-sub'>i</span> − ē)²",
+      note: "Cuidado: em amostras grandes, o teste rejeita H₀ por desvios mínimos. Use junto com o Q-Q plot."
+    },
+    expected: "Shapiro-Wilk normality test\n\ndata:  residuals(mod_mult)\nW = 0.9912, p-value = 0.158",
+    template: [{slot:0}, "(residuals(mod_mult))"],
+    answers: ["shapiro.test"],
+    bank: ["shapiro.test", "ks.test", "t.test", "var.test", "chisq.test", "lillie.test"],
+    hint: "shapiro.test() é o teste padrão. ks.test() (Kolmogorov-Smirnov) também testa normalidade, mas precisa de média/sd."
+  },
+
+  {
+    title: "Fase 18 — Multicolinearidade (VIF)",
+    desc: "Verifique se há multicolinearidade entre os preditores.",
+    theory: {
+      tag: "Diagnóstico",
+      title: "Variance Inflation Factor (VIF)",
+      text: "VIFⱼ mede quanto a variância de β̂ⱼ é <em>inflacionada</em> pela correlação entre Xⱼ e os demais preditores.",
+      formula: "VIF<span class='var-sub'>j</span> = 1 / (1 − R<span class='var-sub'>j</span><span class='var-sup'>2</span>)",
+      note: "Regra geral: VIF > 5 é preocupante, VIF > 10 indica multicolinearidade séria. Função vif() no pacote car."
+    },
+    expected: "aprovacao    rede     ano \n  1.182     1.114   1.063 ",
+    template: ["library(car)\n", {slot:0}, "(mod_mult)"],
+    answers: ["vif"],
+    bank: ["vif", "cor", "cov", "tolerance", "kappa", "collinearity"],
+    hint: "vif() do pacote car é o método mais usado. Tolerance = 1/VIF."
+  },
+
+  {
+    title: "Fase 19 — Critérios de informação (AIC)",
+    desc: "Compare dois modelos pelo AIC. Menor é melhor.",
+    theory: {
+      tag: "Seleção",
+      title: "Critério de Akaike (AIC)",
+      text: "O AIC balanceia <strong>ajuste</strong> (log-verossimilhança) com <strong>complexidade</strong> (nº de parâmetros k). Menor AIC = melhor compromisso.",
+      formula: "AIC = −2 ln(L) + 2k",
+      note: "BIC = −2 ln(L) + k·ln(n) penaliza mais a complexidade. Use AIC/BIC para modelos NÃO aninhados (anova exige aninhados)."
+    },
+    expected: "        df    AIC\nmodelo    3  588.4\nmod_mult  7  519.7",
+    template: [{slot:0}, "(modelo, mod_mult)"],
+    answers: ["AIC"],
+    bank: ["AIC", "BIC", "anova", "logLik", "deviance", "extractAIC"],
+    hint: "AIC() aceita vários modelos como argumentos e devolve uma tabela comparativa."
+  },
+
+  // -------------------- FASE 20: BOSS --------------------
+  {
+    title: "Fase 20 — Pipeline completa (boss final)",
+    desc: "Ajuste um RLM completo, veja o sumário, calcule IC, faça predição com intervalo e verifique multicolinearidade.",
+    theory: {
+      tag: "Workflow",
+      title: "Fluxo padrão de uma análise de regressão",
+      text: "<strong>(1)</strong> ajustar, <strong>(2)</strong> inspecionar, <strong>(3)</strong> testar pressupostos, <strong>(4)</strong> usar para predição.",
+      formula: "lm → summary → confint → predict → vif",
+      note: "Esta é a rotina mínima recomendada. Em produção, adicione validação cruzada, intervalos de previsão e relatório dos pressupostos."
+    },
+    expected: "1) modelo ajustado (lm)\n2) sumário com R², F, p-valores\n3) IC dos coeficientes\n4) predição com IC para escola nova\n5) VIF de cada preditor",
+    template: [
+      "# 1. Ajustar\nfit <- ", {slot:0}, "(ideb ~ aprovacao + rede + ano, data = ideb)\n\n",
+      "# 2. Sumário\n", {slot:1}, "(fit)\n\n",
+      "# 3. Intervalos de confiança dos coeficientes\n", {slot:2}, "(fit, level = 0.95)\n\n",
+      "# 4. Prever para nova escola\nnova <- data.frame(aprovacao = 88, rede = \"Estadual\", ano = 2021)\npredict(fit, newdata = nova, interval = ", {slot:3}, ")\n\n",
+      "# 5. Multicolinearidade\nlibrary(car); ", {slot:4}, "(fit)"
+    ],
+    answers: ["lm", "summary", "confint", '"prediction"', "vif"],
+    bank: ["lm", "summary", "confint", '"prediction"', "vif", "glm", "anova", "AIC", '"confidence"', "predict"],
+    hint: "Ordem: lm → summary → confint → predict(interval='prediction') → vif. Como é predição para UMA escola individual, 'prediction'."
+  }
+];
+
+// =====================================================================
+// ENGINE
+// =====================================================================
+function rng(seed) { let s = seed; return () => { s = (s*9301+49297)%233280; return s/233280; }; }
+
+const estado = {
+  fase: 0, pontos: 0, vidas: 3, tentativas: 0,
+  dicasUsadas: 0, errosTotais: 0, hintUsadaNaFase: false,
+  slotsFilled: []
+};
+
+function trocarTela(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function iniciarJogo() {
+  Object.assign(estado, {fase:0, pontos:0, vidas:3, tentativas:0, dicasUsadas:0, errosTotais:0});
+  document.getElementById('hud').style.display = 'flex';
+  trocarTela('screen-game');
+  carregarFase();
+}
+function reiniciarJogo() { iniciarJogo(); }
+
+function carregarFase() {
+  const f = FASES[estado.fase];
+  estado.slotsFilled = new Array(f.answers.length).fill(null);
+  estado.tentativas = 0;
+  estado.hintUsadaNaFase = false;
+
+  document.getElementById('hud-level').textContent = estado.fase + 1;
+  document.getElementById('hud-total').textContent = FASES.length;
+  document.getElementById('hud-score').textContent = estado.pontos;
+  document.getElementById('hud-lives').textContent = "♥".repeat(estado.vidas) + "♡".repeat(3 - estado.vidas);
+  document.getElementById('progress-fill').style.width = ((estado.fase) / FASES.length * 100) + '%';
+
+  document.getElementById('level-title').textContent = f.title;
+  document.getElementById('level-desc').textContent = f.desc;
+
+  // Theory card
+  document.getElementById('theory-tag').textContent     = f.theory.tag;
+  document.getElementById('theory-title').textContent   = f.theory.title;
+  document.getElementById('theory-text').innerHTML      = f.theory.text;
+  document.getElementById('theory-formula').innerHTML   = f.theory.formula;
+  document.getElementById('theory-note').textContent    = f.theory.note;
+
+  document.getElementById('expected-content').textContent = f.expected;
+
+  renderTemplate();
+  renderBank();
+
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('btn-check').style.display = '';
+  document.getElementById('btn-next').style.display = 'none';
+}
+
+function renderTemplate() {
+  const f = FASES[estado.fase];
+  const cont = document.getElementById('code-template');
+  cont.innerHTML = '';
+  f.template.forEach(piece => {
+    if (typeof piece === 'string') {
+      const span = document.createElement('span');
+      span.textContent = piece;       // texto puro
+      cont.appendChild(span);
+    } else {
+      const slot = document.createElement('span');
+      slot.className = 'slot';
+      slot.dataset.slotIdx = piece.slot;
+      slot.textContent = '___';
+      if (estado.slotsFilled[piece.slot]) {
+        slot.classList.add('filled');
+        slot.textContent = estado.slotsFilled[piece.slot];
+      }
+      slot.addEventListener('dragover', e => { e.preventDefault(); slot.classList.add('over'); });
+      slot.addEventListener('dragleave', () => slot.classList.remove('over'));
+      slot.addEventListener('drop', e => {
+        e.preventDefault();
+        slot.classList.remove('over');
+        const val = e.dataTransfer.getData('text/plain');
+        if (!val) return;
+        estado.slotsFilled[piece.slot] = val;
+        renderTemplate(); renderBank();
+      });
+      slot.addEventListener('click', () => {
+        if (estado.slotsFilled[piece.slot]) {
+          estado.slotsFilled[piece.slot] = null;
+          renderTemplate(); renderBank();
+        }
+      });
+      cont.appendChild(slot);
+    }
+  });
+}
+
+function renderBank() {
+  const f = FASES[estado.fase];
+  const bank = document.getElementById('block-bank');
+  bank.innerHTML = '';
+  const usados = {};
+  estado.slotsFilled.forEach(v => { if (v) usados[v] = (usados[v]||0) + 1; });
+  const embaralhado = f.bank.slice();
+  const r = rng(estado.fase * 37 + 1);
+  for (let i = embaralhado.length-1; i>0; i--) {
+    const j = Math.floor(r()*(i+1));
+    [embaralhado[i], embaralhado[j]] = [embaralhado[j], embaralhado[i]];
+  }
+  embaralhado.forEach(b => {
+    const el = document.createElement('div');
+    el.className = 'block';
+    if (usados[b]) el.classList.add('used');
+    el.textContent = b;
+    el.draggable = true;
+    el.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', b); el.classList.add('dragging'); });
+    el.addEventListener('dragend', () => el.classList.remove('dragging'));
+    bank.appendChild(el);
+  });
+}
+
+function verificar() {
+  const f = FASES[estado.fase];
+  if (estado.slotsFilled.some(v => v === null)) {
+    mostrarFeedback('error', 'Preencha todos os slots antes de verificar.', 'error');
+    return;
+  }
+  const errados = [];
+  f.answers.forEach((ans, i) => { if (estado.slotsFilled[i] !== ans) errados.push(i); });
+
+  document.querySelectorAll('.slot').forEach(s => {
+    const idx = parseInt(s.dataset.slotIdx);
+    s.classList.remove('correct','wrong');
+    if (errados.includes(idx)) s.classList.add('wrong');
+    else if (estado.slotsFilled[idx]) s.classList.add('correct');
+  });
+
+  if (errados.length === 0) {
+    let ganho = 100;
+    if (estado.tentativas === 1) ganho = 60;
+    else if (estado.tentativas >= 2) ganho = 30;
+    if (estado.hintUsadaNaFase) ganho = Math.max(10, ganho - 30);
+    estado.pontos += ganho;
+    document.getElementById('hud-score').textContent = estado.pontos;
+    mostrarFeedback('success',
+      `Acertou! +${ganho} pontos. ` + (estado.fase < FASES.length-1 ? 'Próxima fase liberada.' : 'Você terminou todas as fases.'),
+      'check_circle');
+    document.getElementById('btn-check').style.display = 'none';
+    document.getElementById('btn-next').style.display = '';
+    document.getElementById('progress-fill').style.width = ((estado.fase+1) / FASES.length * 100) + '%';
+    confetti();
+  } else {
+    estado.tentativas++;
+    estado.errosTotais++;
+    estado.vidas--;
+    document.getElementById('hud-lives').textContent = "♥".repeat(Math.max(0,estado.vidas)) + "♡".repeat(3-Math.max(0,estado.vidas));
+    const dirPanel = document.querySelectorAll('.panel-game')[1];
+    if (dirPanel) { dirPanel.classList.add('shake'); setTimeout(()=>dirPanel.classList.remove('shake'), 400); }
+    if (estado.vidas <= 0) {
+      mostrarFeedback('error', `Sem vidas. Resposta correta: ${f.answers.join(', ')}. Avançando...`, 'error');
+      document.getElementById('btn-check').style.display = 'none';
+      document.getElementById('btn-next').style.display = '';
+      estado.vidas = 1;
+    } else {
+      mostrarFeedback('error', `${errados.length} slot(s) incorreto(s). Tente de novo.`, 'cancel');
+    }
+  }
+}
+
+function mostrarFeedback(tipo, msg, icone) {
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback show ' + tipo;
+  document.getElementById('feedback-icon').textContent = icone || 'info';
+  document.getElementById('feedback-msg').textContent = msg;
+}
+
+function usarDica() {
+  if (estado.hintUsadaNaFase) { mostrarFeedback('hint', 'Você já usou a dica desta fase.', 'lightbulb'); return; }
+  estado.hintUsadaNaFase = true;
+  estado.dicasUsadas++;
+  estado.pontos = Math.max(0, estado.pontos - 30);
+  document.getElementById('hud-score').textContent = estado.pontos;
+  mostrarFeedback('hint', FASES[estado.fase].hint, 'lightbulb');
+}
+
+function reiniciarFase() {
+  estado.slotsFilled = new Array(FASES[estado.fase].answers.length).fill(null);
+  renderTemplate(); renderBank();
+  document.getElementById('feedback').className = 'feedback';
+}
+
+function proximaFase() {
+  estado.fase++;
+  if (estado.fase >= FASES.length) mostrarFim();
+  else carregarFase();
+}
+
+function mostrarFim() {
+  document.getElementById('hud').style.display = 'none';
+  document.getElementById('end-score').textContent = estado.pontos;
+  document.getElementById('end-level').textContent = FASES.length;
+  document.getElementById('end-hints').textContent = estado.dicasUsadas;
+  document.getElementById('end-errors').textContent = estado.errosTotais;
+  const maxPts = FASES.length * 100;
+  const pct = estado.pontos / maxPts;
+  let stars = '⭐', titulo = 'Bom começo';
+  let msg = 'Você completou todas as fases. Que tal jogar de novo para melhorar a pontuação?';
+  if (pct >= 0.85) { stars = '⭐⭐⭐'; titulo = 'Econometrista nato'; msg = 'Pontuação excelente. Você domina inferência, RLM e diagnósticos.'; }
+  else if (pct >= 0.6) { stars = '⭐⭐'; titulo = 'Muito bem'; msg = 'Você foi bem. Revise as fases em que errou para fechar conceitos.'; }
+  document.getElementById('end-title').textContent = titulo;
+  document.getElementById('end-msg').textContent = msg;
+  document.getElementById('end-stars').textContent = stars;
+  trocarTela('screen-end');
+  confetti();
+}
+
+function confetti() {
+  const c = document.getElementById('confetti');
+  c.style.display = 'block';
+  c.width = window.innerWidth; c.height = window.innerHeight;
+  const ctx = c.getContext('2d');
+  const peças = [];
+  const cores = ['#1976d2','#d32f2f','#2e7d32','#ed6c02','#7b1fa2'];
+  for (let i=0; i<70; i++) {
+    peças.push({ x: Math.random()*c.width, y: -20 - Math.random()*200,
+      vx: (Math.random()-0.5)*3, vy: 2 + Math.random()*3,
+      cor: cores[Math.floor(Math.random()*cores.length)],
+      size: 6 + Math.random()*8, rot: Math.random()*Math.PI*2,
+      vr: (Math.random()-0.5)*0.3 });
+  }
+  let frames = 0;
+  function animar() {
+    ctx.clearRect(0,0,c.width,c.height);
+    peças.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.cor; ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+      ctx.restore();
+    });
+    frames++;
+    if (frames < 140) requestAnimationFrame(animar);
+    else { c.style.display = 'none'; ctx.clearRect(0,0,c.width,c.height); }
+  }
+  animar();
+}
+</script>
+</body>
+</html>

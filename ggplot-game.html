@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ggplot Quest · IDEB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+  /* ===================================================================
+     Material UI inspired stylesheet (single-file, no React/MUI runtime).
+     Tokens, components and elevations seguem o tema Light padrao do MUI.
+  =================================================================== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    /* Palette - Material Light theme */
+    --primary:        #1976d2;
+    --primary-dark:   #1565c0;
+    --primary-light:  #42a5f5;
+    --secondary:      #9c27b0;
+    --secondary-dark: #7b1fa2;
+    --error:          #d32f2f;
+    --warning:        #ed6c02;
+    --info:           #0288d1;
+    --success:        #2e7d32;
+
+    /* Surfaces */
+    --bg:             #f5f5f5;
+    --paper:          #ffffff;
+    --surface-2:      #fafafa;
+    --divider:        rgba(0,0,0,0.12);
+
+    /* Text */
+    --text-primary:   rgba(0,0,0,0.87);
+    --text-secondary: rgba(0,0,0,0.6);
+    --text-disabled:  rgba(0,0,0,0.38);
+    --on-primary:     #ffffff;
+
+    /* Elevations (Material) */
+    --e1: 0 2px 1px -1px rgba(0,0,0,0.2), 0 1px 1px 0 rgba(0,0,0,0.14), 0 1px 3px 0 rgba(0,0,0,0.12);
+    --e2: 0 3px 1px -2px rgba(0,0,0,0.2), 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12);
+    --e4: 0 2px 4px -1px rgba(0,0,0,0.2), 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12);
+    --e8: 0 5px 5px -3px rgba(0,0,0,0.2), 0 8px 10px 1px rgba(0,0,0,0.14), 0 3px 14px 2px rgba(0,0,0,0.12);
+
+    /* Categorical palette for charts */
+    --c1: #1976d2;  /* blue 700  - Municipal */
+    --c2: #d32f2f;  /* red 700   - Estadual */
+    --c3: #2e7d32;  /* green 800 - Federal */
+    --c4: #ed6c02;  /* orange    - Privada */
+    --c5: #7b1fa2;  /* purple */
+    --c6: #00838f;  /* cyan */
+    --c7: #5d4037;  /* brown */
+  }
+
+  body {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+
+  /* -------- AppBar -------- */
+  .appbar {
+    background: var(--primary);
+    color: var(--on-primary);
+    box-shadow: var(--e4);
+    position: sticky; top: 0; z-index: 100;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 64px;
+  }
+  .appbar-brand { display: inline-flex; align-items: center; margin-right: 16px; text-decoration: none; }
+  .appbar-brand img { height: 36px; display: block; border-radius: 8px; background: white; padding: 2px; transition: transform 0.2s; }
+  .appbar-brand:hover img { transform: scale(1.04); }
+  .appbar-left { display: flex; align-items: center; }
+  .appbar-title {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 20px; font-weight: 500; letter-spacing: 0.0075em;
+  }
+  .appbar-title .material-icons { font-size: 28px; }
+  .appbar-title .sub {
+    font-size: 12px; font-weight: 400; opacity: 0.85; margin-left: 8px;
+  }
+
+  /* -------- HUD chips inside appbar -------- */
+  .hud { display: flex; gap: 8px; align-items: center; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.16);
+    color: var(--on-primary);
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 13px; font-weight: 500;
+  }
+  .chip .material-icons { font-size: 18px; }
+  .chip-progress {
+    background: rgba(255,255,255,0.16);
+    width: 140px; height: 4px; border-radius: 2px; overflow: hidden;
+    margin-left: 8px;
+  }
+  .chip-progress > div { height: 100%; background: var(--on-primary); width: 0%; transition: width 0.4s; }
+
+  /* -------- Screens -------- */
+  .screen { display: none; padding: 32px 24px 64px; }
+  .screen.active { display: block; }
+
+  /* -------- TELA INICIAL -------- */
+  #screen-start {
+    text-align: center; padding-top: 80px;
+    min-height: 85vh;
+    display: none; flex-direction: column; align-items: center;
+  }
+  #screen-start.active { display: flex; }
+  #screen-start h1 {
+    font-size: 60px; font-weight: 300; letter-spacing: -0.5px;
+    color: var(--text-primary); margin-bottom: 16px;
+  }
+  #screen-start h1 .accent { color: var(--primary); font-weight: 500; }
+  #screen-start .lead {
+    font-size: 16px; color: var(--text-secondary);
+    max-width: 640px; margin: 0 auto 8px; line-height: 1.6;
+  }
+  #screen-start .lead code {
+    background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px;
+    font-family: 'Roboto Mono', monospace; font-size: 13px;
+  }
+
+  /* -------- Buttons (Material) -------- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500; font-size: 14px;
+    letter-spacing: 0.02857em; text-transform: uppercase;
+    padding: 8px 22px; min-height: 36px;
+    border-radius: 4px;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    position: relative; overflow: hidden;
+    user-select: none;
+  }
+  .btn .material-icons { font-size: 18px; }
+  .btn-contained {
+    background: var(--primary); color: var(--on-primary); box-shadow: var(--e2);
+  }
+  .btn-contained:hover { background: var(--primary-dark); box-shadow: var(--e4); }
+  .btn-outlined {
+    background: transparent; color: var(--primary);
+    border: 1px solid rgba(25,118,210,0.5);
+  }
+  .btn-outlined:hover { background: rgba(25,118,210,0.08); border-color: var(--primary); }
+  .btn-text {
+    background: transparent; color: var(--primary); padding: 6px 16px;
+  }
+  .btn-text:hover { background: rgba(25,118,210,0.08); }
+  .btn-warning  { background: var(--warning); color: white; box-shadow: var(--e2); }
+  .btn-warning:hover  { background: #c66200; box-shadow: var(--e4); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+  .btn-fab {
+    margin-top: 40px; padding: 14px 40px;
+    font-size: 15px; min-height: 48px;
+    border-radius: 8px;
+  }
+
+  /* Ripple */
+  .btn::after {
+    content: ''; position: absolute; top: 50%; left: 50%;
+    width: 0; height: 0; border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease;
+    pointer-events: none;
+  }
+  .btn-outlined::after, .btn-text::after { background: rgba(25,118,210,0.2); }
+  .btn:active::after { width: 220%; height: 220%; transition: 0s; }
+
+  /* -------- Cards (Paper + elevation) -------- */
+  .card {
+    background: var(--paper);
+    border-radius: 8px;
+    box-shadow: var(--e1);
+    padding: 24px;
+  }
+  .card-feature {
+    background: var(--paper); border-radius: 8px; box-shadow: var(--e1);
+    padding: 28px; text-align: left;
+  }
+  .feature-icon {
+    width: 48px; height: 48px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: rgba(25,118,210,0.12); color: var(--primary);
+    margin-bottom: 16px;
+  }
+  .feature-icon .material-icons { font-size: 28px; }
+  .card-feature h3 {
+    font-size: 18px; font-weight: 500; margin-bottom: 8px;
+    color: var(--text-primary);
+  }
+  .card-feature p { font-size: 14px; color: var(--text-secondary); line-height: 1.55; }
+
+  .features-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+    margin-top: 56px; max-width: 960px; width: 100%;
+  }
+
+  /* -------- Game grid -------- */
+  .game-grid {
+    display: grid; grid-template-columns: 1fr 1.15fr; gap: 24px;
+    max-width: 1440px; margin: 0 auto;
+  }
+  .panel-title {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 500; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-secondary);
+    margin-bottom: 16px;
+  }
+  .panel-title .material-icons { font-size: 18px; color: var(--primary); }
+  .level-title {
+    font-size: 22px; font-weight: 500; color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+  .level-desc {
+    color: var(--text-secondary); font-size: 14px; line-height: 1.55;
+    margin-bottom: 20px;
+  }
+  .target-svg {
+    width: 100%; background: var(--surface-2);
+    border-radius: 4px; padding: 16px;
+    border: 1px solid var(--divider);
+  }
+  .target-svg svg { width: 100%; height: auto; display: block; }
+
+  /* -------- Code block + slots (visual de console R, limpo) -------- */
+  .code-block {
+    background: #fafafa;
+    color: #212121;
+    padding: 20px 22px;
+    border-radius: 4px;
+    border: 1px solid var(--divider);
+    font-family: 'Roboto Mono', 'SF Mono', 'Monaco', monospace;
+    font-size: 14px; line-height: 2.0;
+    white-space: pre-wrap;
+    margin-bottom: 20px;
+    min-height: 130px;
+  }
+
+  .slot {
+    display: inline-block; min-width: 96px;
+    padding: 3px 12px; margin: 0 3px;
+    background: #fff;
+    border: 1.5px dashed #9e9e9e;
+    border-radius: 4px;
+    color: #9e9e9e;
+    text-align: center; font-style: italic;
+    font-family: 'Roboto Mono', monospace;
+    vertical-align: middle; transition: all 0.15s;
+  }
+  .slot.over    { background: rgba(25,118,210,0.08); border-color: var(--primary); border-style: solid; }
+  .slot.filled  { background: rgba(25,118,210,0.08); border: 1.5px solid var(--primary); color: var(--primary-dark); font-style: normal; font-weight: 500; cursor: pointer; }
+  .slot.wrong   { background: rgba(211,47,47,0.08); border: 1.5px solid var(--error); color: var(--error); }
+  .slot.correct { background: rgba(46,125,50,0.08); border: 1.5px solid var(--success); color: var(--success); }
+
+  /* -------- Bank of chips -------- */
+  .bank-title {
+    font-size: 12px; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-secondary);
+    margin-bottom: 12px; font-weight: 500;
+  }
+  .bank {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    min-height: 88px;
+    padding: 16px;
+    background: var(--surface-2);
+    border-radius: 4px;
+    border: 1px solid var(--divider);
+  }
+  /* Chip (Material) - todos iguais, sem destaque */
+  .block {
+    display: inline-flex; align-items: center;
+    padding: 8px 14px;
+    background: var(--paper);
+    color: var(--text-primary);
+    border: 1px solid var(--divider);
+    border-radius: 16px;            /* chip pill */
+    font-family: 'Roboto Mono', monospace;
+    font-size: 13px; font-weight: 500;
+    cursor: grab; user-select: none;
+    transition: all 0.15s;
+    box-shadow: var(--e1);
+  }
+  .block:hover { background: var(--surface-2); box-shadow: var(--e2); transform: translateY(-1px); }
+  .block:active { cursor: grabbing; }
+  .block.dragging { opacity: 0.4; }
+  .block.used { display: none; }
+
+  /* -------- Actions -------- */
+  .actions { display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; justify-content: flex-end; }
+
+  /* -------- Alerts (feedback) -------- */
+  .feedback {
+    margin-top: 16px;
+    padding: 12px 16px;
+    border-radius: 4px;
+    font-size: 14px; display: none; line-height: 1.5;
+    border-left: 4px solid;
+    display: none; align-items: flex-start; gap: 10px;
+  }
+  .feedback.show { display: flex; }
+  .feedback.success { background: #edf7ed; color: #1e4620; border-color: var(--success); }
+  .feedback.error   { background: #fdecea; color: #5f2120; border-color: var(--error); }
+  .feedback.hint    { background: #fff4e5; color: #663c00; border-color: var(--warning); }
+  .feedback .material-icons { font-size: 22px; }
+  .feedback.success .material-icons { color: var(--success); }
+  .feedback.error .material-icons   { color: var(--error); }
+  .feedback.hint .material-icons    { color: var(--warning); }
+
+  /* -------- End screen -------- */
+  #screen-end { text-align: center; padding-top: 80px; min-height: 80vh; }
+  #screen-end h1 { font-size: 48px; font-weight: 300; color: var(--text-primary); margin-bottom: 12px; letter-spacing: -0.5px; }
+  #screen-end .end-sub { font-size: 16px; color: var(--text-secondary); max-width: 560px; margin: 0 auto; }
+  .final-score-card {
+    background: var(--paper); border-radius: 8px; box-shadow: var(--e2);
+    padding: 32px; margin: 32px auto; max-width: 480px;
+  }
+  .final-score { font-size: 72px; font-weight: 300; color: var(--primary); margin: 8px 0; letter-spacing: -2px; }
+  .stars { font-size: 36px; margin: 8px 0 16px; letter-spacing: 10px; }
+  .final-stats { display: flex; justify-content: center; gap: 56px; flex-wrap: wrap; }
+  .final-stat .v { font-size: 28px; font-weight: 500; color: var(--text-primary); }
+  .final-stat .l { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
+
+  /* Animations */
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .card, .panel-game { animation: fadeIn 0.3s ease; }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  .shake { animation: shake 0.35s; }
+
+  #confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 200; display: none; }
+
+  @media (max-width: 960px) {
+    .game-grid { grid-template-columns: 1fr; }
+    .features-grid { grid-template-columns: 1fr; }
+    .hud .chip-progress { display: none; }
+    #screen-start h1 { font-size: 40px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ APP BAR ============ -->
+<header class="appbar">
+  <div class="appbar-left">
+    <a href="index.html" class="appbar-brand" title="Voltar ao portal Evante">
+      <img src="Evante-01.jpg" alt="Evante" />
+    </a>
+    <div class="appbar-title">
+      <span class="material-icons">insights</span>
+      ggplot Quest <span class="sub">· IDEB</span>
+    </div>
+  </div>
+  <div class="hud" id="hud" style="display:none;">
+    <div class="chip"><span class="material-icons">flag</span><span id="hud-level">1</span>/<span id="hud-total">20</span></div>
+    <div class="chip-progress"><div id="progress-fill"></div></div>
+    <div class="chip"><span class="material-icons">stars</span><span id="hud-score">0</span></div>
+    <div class="chip"><span class="material-icons">favorite</span><span id="hud-lives">3</span></div>
+  </div>
+</header>
+
+<!-- ============ START SCREEN ============ -->
+<section id="screen-start" class="screen active">
+  <h1>ggplot <span class="accent">Quest</span></h1>
+  <p class="lead">Arraste blocos de código para reconstruir gráficos sobre o <strong>Índice de Desenvolvimento da Educação Básica</strong>.</p>
+  <p class="lead">20 fases progressivas, todas com pipe <code>%&gt;%</code> e funções reais do <code>ggplot2</code>.</p>
+
+  <button class="btn btn-contained btn-fab" onclick="iniciarJogo()">
+    <span class="material-icons">play_arrow</span>Começar
+  </button>
+
+  <div class="features-grid">
+    <div class="card-feature">
+      <div class="feature-icon"><span class="material-icons">crop_original</span></div>
+      <h3>Veja o alvo</h3>
+      <p>Cada fase mostra um gráfico-alvo no estilo <code>ggplot2</code>, gerado a partir do dataset <code>ideb</code>.</p>
+    </div>
+    <div class="card-feature">
+      <div class="feature-icon"><span class="material-icons">drag_indicator</span></div>
+      <h3>Arraste os blocos</h3>
+      <p>Encaixe geoms, aes, facets e scales nos slots. Todos os blocos têm o mesmo visual — sem pistas.</p>
+    </div>
+    <div class="card-feature">
+      <div class="feature-icon"><span class="material-icons">emoji_events</span></div>
+      <h3>Ganhe pontos</h3>
+      <p>Acerte de primeira para ganhar 100 pontos. Use dicas se travar — elas custam 30 pontos.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ GAME SCREEN ============ -->
+<section id="screen-game" class="screen">
+  <div class="game-grid">
+    <div class="card panel-game">
+      <div class="panel-title"><span class="material-icons">visibility</span>Gráfico-alvo</div>
+      <div class="level-title" id="level-title">Fase 1</div>
+      <div class="level-desc" id="level-desc"></div>
+      <div class="target-svg" id="target-svg"></div>
+    </div>
+
+    <div class="card panel-game">
+      <div class="panel-title"><span class="material-icons">code</span>Monte o código</div>
+      <div class="code-block" id="code-template"></div>
+
+      <div class="bank-title">Blocos disponíveis · arraste para os slots</div>
+      <div class="bank" id="block-bank"></div>
+
+      <div class="feedback" id="feedback">
+        <span class="material-icons" id="feedback-icon">info</span>
+        <span id="feedback-msg"></span>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-text" onclick="usarDica()"><span class="material-icons">lightbulb</span>Dica · -30</button>
+        <button class="btn btn-text" onclick="reiniciarFase()"><span class="material-icons">refresh</span>Reiniciar</button>
+        <button class="btn btn-contained" id="btn-check" onclick="verificar()"><span class="material-icons">check_circle</span>Verificar</button>
+        <button class="btn btn-contained" id="btn-next" onclick="proximaFase()" style="display:none;">Próxima<span class="material-icons">arrow_forward</span></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ END SCREEN ============ -->
+<section id="screen-end" class="screen">
+  <h1 id="end-title">Parabéns</h1>
+  <p class="end-sub" id="end-msg">Você completou todas as fases.</p>
+  <div class="final-score-card">
+    <div class="stars" id="end-stars">⭐⭐⭐</div>
+    <div class="final-score" id="end-score">0</div>
+    <div class="final-stats">
+      <div class="final-stat"><div class="v" id="end-level">20</div><div class="l">Fases</div></div>
+      <div class="final-stat"><div class="v" id="end-hints">0</div><div class="l">Dicas</div></div>
+      <div class="final-stat"><div class="v" id="end-errors">0</div><div class="l">Erros</div></div>
+    </div>
+  </div>
+  <button class="btn btn-contained btn-fab" onclick="reiniciarJogo()">
+    <span class="material-icons">replay</span>Jogar de novo
+  </button>
+</section>
+
+<canvas id="confetti"></canvas>
+
+<script>
+// =====================================================================
+// PALETA MATERIAL para os gráficos
+// =====================================================================
+const COLORS = {
+  primary:   '#1976d2',
+  primaryD:  '#1565c0',
+  primaryL:  '#42a5f5',
+  // categorica (rede)
+  cat: ['#1976d2', '#d32f2f', '#2e7d32', '#ed6c02', '#7b1fa2', '#00838f', '#5d4037'],
+  text:     '#263238',
+  textMute: '#546e7a',
+  grid:     '#eceff1',
+  panelBg:  '#ffffff'
+};
+
+// =====================================================================
+// DATASET IDEB SIMULADO
+// =====================================================================
+const REDES = ["Municipal","Estadual","Federal","Privada"];
+const ETAPAS = ["Anos Iniciais","Anos Finais","Ensino Medio"];
+const MUNICIPIOS = ["Maceio","Arapiraca","Palmeira","Penedo","Uniao dos Palmares","Santana","Delmiro","Coruripe","Marechal","Pilar"];
+const ANOS = [2007,2009,2011,2013,2015,2017,2019,2021];
+
+function rng(seed) { let s = seed; return () => { s = (s*9301+49297)%233280; return s/233280; }; }
+
+const IDEB_SIM = (() => {
+  const r = rng(73);
+  const arr = [];
+  for (let i = 0; i < 240; i++) {
+    const rede = REDES[Math.floor(r()*REDES.length)];
+    const etapa = ETAPAS[Math.floor(r()*ETAPAS.length)];
+    const ano = ANOS[Math.floor(r()*ANOS.length)];
+    const municipio = MUNICIPIOS[Math.floor(r()*MUNICIPIOS.length)];
+    const baseRede = {Privada:6.5, Federal:6.0, Estadual:4.2, Municipal:4.0}[rede];
+    const tend = (ano - 2007) * 0.12;
+    const ajusteEtapa = {"Anos Iniciais":+0.7,"Anos Finais":0.0,"Ensino Medio":-0.5}[etapa];
+    const ideb = Math.max(1.5, Math.min(8.9, baseRede + tend + ajusteEtapa + (r()-0.5)*1.5));
+    const aprovacao = Math.max(55, Math.min(99, 70 + (ideb-4)*5 + (r()-0.5)*8));
+    const proficiencia = Math.max(120, Math.min(380, 150 + ideb*25 + (r()-0.5)*30));
+    const meta = Math.max(3, Math.min(7, baseRede + tend*0.8));
+    arr.push({ escola: "Escola "+(i+1), municipio, rede, etapa, ano,
+      ideb: +ideb.toFixed(1), aprovacao: +aprovacao.toFixed(1),
+      proficiencia: +proficiencia.toFixed(0), meta: +meta.toFixed(1) });
+  }
+  return arr;
+})();
+
+function meanBy(data, key, val) {
+  const groups = {};
+  data.forEach(d => { (groups[d[key]] = groups[d[key]] || []).push(d[val]); });
+  return Object.entries(groups).map(([k, vs]) => ({key: k, mean: vs.reduce((a,b)=>a+b,0)/vs.length, n: vs.length}));
+}
+
+// =====================================================================
+// HELPERS DE SVG
+// =====================================================================
+function svgWrap(inner, w=480, h=340) {
+  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" style="background:${COLORS.panelBg};">${inner}</svg>`;
+}
+
+function axes(opts={}) {
+  const {xlab="x", ylab="y", panelX=70, panelY=20, panelW=380, panelH=260,
+         xticks=[], yticks=[]} = opts;
+  let s = `<rect x="${panelX}" y="${panelY}" width="${panelW}" height="${panelH}" fill="white" stroke="${COLORS.grid}"/>`;
+  for (let i=1; i<5; i++) {
+    const y = panelY + (panelH/5)*i;
+    s += `<line x1="${panelX}" y1="${y}" x2="${panelX+panelW}" y2="${y}" stroke="${COLORS.grid}"/>`;
+    const x = panelX + (panelW/5)*i;
+    s += `<line x1="${x}" y1="${panelY}" x2="${x}" y2="${panelY+panelH}" stroke="${COLORS.grid}"/>`;
+  }
+  s += `<text x="${panelX+panelW/2}" y="${panelY+panelH+50}" text-anchor="middle" font-size="12" fill="${COLORS.textMute}" font-family="Roboto,sans-serif">${xlab}</text>`;
+  s += `<text x="20" y="${panelY+panelH/2}" text-anchor="middle" font-size="12" fill="${COLORS.textMute}" font-family="Roboto,sans-serif" transform="rotate(-90 20 ${panelY+panelH/2})">${ylab}</text>`;
+  xticks.forEach(t => {
+    const tx = panelX + t.pos*panelW;
+    s += `<text x="${tx}" y="${panelY+panelH+18}" text-anchor="middle" font-size="10" fill="${COLORS.textMute}" font-family="Roboto,sans-serif">${t.label}</text>`;
+  });
+  yticks.forEach(t => {
+    const ty = panelY + panelH - t.pos*panelH;
+    s += `<text x="${panelX-8}" y="${ty+4}" text-anchor="end" font-size="10" fill="${COLORS.textMute}" font-family="Roboto,sans-serif">${t.label}</text>`;
+  });
+  return {svgBg: s, panelX, panelY, panelW, panelH};
+}
+
+const tx_aprov = [{pos:0,label:"60"},{pos:0.25,label:"70"},{pos:0.5,label:"80"},{pos:0.75,label:"90"},{pos:1,label:"100"}];
+const ty_ideb  = [{pos:0,label:"2"},{pos:0.25,label:"3.5"},{pos:0.5,label:"5"},{pos:0.75,label:"6.5"},{pos:1,label:"8"}];
+const tx_ideb  = [{pos:0,label:"2"},{pos:0.25,label:"3.5"},{pos:0.5,label:"5"},{pos:0.75,label:"6.5"},{pos:1,label:"8"}];
+
+// =====================================================================
+// DESENHOS (coloridos com paleta Material)
+// =====================================================================
+function drawScatter() {
+  const a = axes({xlab:"aprovacao", ylab:"ideb", xticks: tx_aprov, yticks: ty_ideb});
+  let pts = "";
+  IDEB_SIM.forEach(d => {
+    const x = a.panelX + ((d.aprovacao-60)/40)*a.panelW;
+    const y = a.panelY + a.panelH - ((d.ideb-2)/6)*a.panelH;
+    pts += `<circle cx="${x}" cy="${y}" r="3" fill="${COLORS.primary}" opacity="0.65"/>`;
+  });
+  return svgWrap(a.svgBg + pts);
+}
+
+function drawScatterColor(palette=COLORS.cat) {
+  const a = axes({xlab:"aprovacao", ylab:"ideb", xticks: tx_aprov, yticks: ty_ideb, panelW: 320});
+  let pts = "";
+  IDEB_SIM.forEach(d => {
+    const x = a.panelX + ((d.aprovacao-60)/40)*a.panelW;
+    const y = a.panelY + a.panelH - ((d.ideb-2)/6)*a.panelH;
+    const ci = REDES.indexOf(d.rede);
+    pts += `<circle cx="${x}" cy="${y}" r="3" fill="${palette[ci]}" opacity="0.85"/>`;
+  });
+  let leg = `<text x="410" y="35" font-size="11" fill="${COLORS.text}" font-family="Roboto,sans-serif" font-weight="500">rede</text>`;
+  REDES.forEach((c, i) => {
+    leg += `<circle cx="415" cy="${58+i*22}" r="5" fill="${palette[i]}"/>`;
+    leg += `<text x="426" y="${62+i*22}" font-size="11" fill="${COLORS.text}" font-family="Roboto,sans-serif">${c}</text>`;
+  });
+  return svgWrap(a.svgBg + pts + leg, 530);
+}
+
+function drawScatterBrewer() {
+  // paleta Brewer Set2 (verde, laranja, azul, rosa)
+  return drawScatterColor(['#66c2a5','#fc8d62','#8da0cb','#e78ac3']);
+}
+
+function drawLine() {
+  const a = axes({xlab:"ano", ylab:"ideb_medio",
+    xticks: ANOS.map((y,i)=>({pos: i/(ANOS.length-1), label: String(y)})),
+    yticks: [{pos:0,label:"3.5"},{pos:0.3,label:"4.5"},{pos:0.6,label:"5.5"},{pos:1,label:"6.5"}]
+  });
+  const agg = meanBy(IDEB_SIM, "ano", "ideb").sort((a,b)=>+a.key-+b.key);
+  let path = "M", dots = "";
+  agg.forEach((d, i) => {
+    const x = a.panelX + (i/(agg.length-1))*a.panelW;
+    const y = a.panelY + a.panelH - ((d.mean-3.5)/3)*a.panelH;
+    path += `${i==0?"":"L"}${x},${y}`;
+    dots += `<circle cx="${x}" cy="${y}" r="4" fill="${COLORS.primary}"/>`;
+  });
+  return svgWrap(a.svgBg + `<path d="${path}" fill="none" stroke="${COLORS.primary}" stroke-width="2.5"/>` + dots);
+}
+
+function drawHistogram() {
+  const a = axes({xlab:"ideb", ylab:"count",
+    xticks: tx_ideb,
+    yticks: [{pos:0,label:"0"},{pos:0.33,label:"20"},{pos:0.66,label:"40"},{pos:1,label:"60"}]
+  });
+  const bins = 20, counts = new Array(bins).fill(0);
+  IDEB_SIM.forEach(d => {
+    const idx = Math.min(bins-1, Math.max(0, Math.floor(((d.ideb-2)/6)*bins)));
+    counts[idx]++;
+  });
+  const max = Math.max(...counts);
+  let bars = ""; const bw = a.panelW/bins;
+  counts.forEach((c, i) => {
+    const h = (c/max)*a.panelH*0.95;
+    bars += `<rect x="${a.panelX+i*bw}" y="${a.panelY+a.panelH-h}" width="${bw-1}" height="${h}" fill="${COLORS.primary}" opacity="0.8" stroke="white" stroke-width="0.5"/>`;
+  });
+  return svgWrap(a.svgBg + bars);
+}
+
+function drawBoxplot(flip=false) {
+  const opts = flip ? {
+    xlab:"ideb", ylab:"rede", xticks: tx_ideb,
+    yticks: REDES.map((c,i)=>({pos:(i+0.5)/REDES.length, label:c}))
+  } : {
+    xlab:"rede", ylab:"ideb",
+    xticks: REDES.map((c,i)=>({pos:(i+0.5)/REDES.length, label:c})),
+    yticks: ty_ideb
+  };
+  const a = axes(opts);
+  let bx = "";
+  REDES.forEach((rede, i) => {
+    const vals = IDEB_SIM.filter(d=>d.rede===rede).map(d=>d.ideb).sort((a,b)=>a-b);
+    if (vals.length<2) return;
+    const q1 = vals[Math.floor(vals.length*0.25)];
+    const med = vals[Math.floor(vals.length*0.5)];
+    const q3 = vals[Math.floor(vals.length*0.75)];
+    const lo = Math.max(2, q1 - 1.5), hi = Math.min(8, q3 + 1.5);
+    const cx = (i+0.5)/REDES.length;
+    const color = COLORS.cat[i];
+    if (flip) {
+      const cy = a.panelY + a.panelH - cx*a.panelH;
+      const x = v => a.panelX + ((v-2)/6)*a.panelW;
+      bx += `<line x1="${x(lo)}" y1="${cy}" x2="${x(hi)}" y2="${cy}" stroke="${color}"/>`;
+      bx += `<rect x="${x(q1)}" y="${cy-14}" width="${x(q3)-x(q1)}" height="28" fill="${color}" opacity="0.2" stroke="${color}" stroke-width="1.5"/>`;
+      bx += `<line x1="${x(med)}" y1="${cy-14}" x2="${x(med)}" y2="${cy+14}" stroke="${color}" stroke-width="2.5"/>`;
+    } else {
+      const xx = a.panelX + cx*a.panelW;
+      const y = v => a.panelY + a.panelH - ((v-2)/6)*a.panelH;
+      bx += `<line x1="${xx}" y1="${y(lo)}" x2="${xx}" y2="${y(hi)}" stroke="${color}"/>`;
+      bx += `<rect x="${xx-18}" y="${y(q3)}" width="36" height="${y(q1)-y(q3)}" fill="${color}" opacity="0.2" stroke="${color}" stroke-width="1.5"/>`;
+      bx += `<line x1="${xx-18}" y1="${y(med)}" x2="${xx+18}" y2="${y(med)}" stroke="${color}" stroke-width="2.5"/>`;
+    }
+  });
+  return svgWrap(a.svgBg + bx);
+}
+function drawBoxplotFlip() { return drawBoxplot(true); }
+
+function drawScatterSmooth() {
+  const a = axes({xlab:"aprovacao", ylab:"ideb", xticks: tx_aprov, yticks: ty_ideb});
+  let pts = "";
+  IDEB_SIM.forEach(d => {
+    const x = a.panelX + ((d.aprovacao-60)/40)*a.panelW;
+    const y = a.panelY + a.panelH - ((d.ideb-2)/6)*a.panelH;
+    pts += `<circle cx="${x}" cy="${y}" r="3" fill="${COLORS.primary}" opacity="0.55"/>`;
+  });
+  const xs = IDEB_SIM.map(d=>d.aprovacao), ys = IDEB_SIM.map(d=>d.ideb);
+  const mx = xs.reduce((a,b)=>a+b,0)/xs.length;
+  const my = ys.reduce((a,b)=>a+b,0)/ys.length;
+  let num=0, den=0;
+  for (let i=0;i<xs.length;i++) { num += (xs[i]-mx)*(ys[i]-my); den += Math.pow(xs[i]-mx,2); }
+  const slope = num/den, intercept = my - slope*mx;
+  const xL=60, xR=100;
+  const yL = slope*xL + intercept, yR = slope*xR + intercept;
+  const px = v => a.panelX + ((v-60)/40)*a.panelW;
+  const py = v => a.panelY + a.panelH - ((v-2)/6)*a.panelH;
+  const band = `<polygon points="${px(xL)},${py(yL)-12} ${px(xR)},${py(yR)-10} ${px(xR)},${py(yR)+10} ${px(xL)},${py(yL)+12}" fill="${COLORS.primary}" opacity="0.2"/>`;
+  const line = `<line x1="${px(xL)}" y1="${py(yL)}" x2="${px(xR)}" y2="${py(yR)}" stroke="${COLORS.primaryD}" stroke-width="2.5"/>`;
+  return svgWrap(a.svgBg + pts + band + line);
+}
+
+function drawScatterFacet() {
+  const panelW = 130, gap = 12, panelH = 230;
+  let s = "";
+  ETAPAS.forEach((et, di) => {
+    const px = 50 + di*(panelW+gap), py = 30;
+    s += `<rect x="${px}" y="${py}" width="${panelW}" height="${panelH}" fill="white" stroke="${COLORS.grid}"/>`;
+    for (let i=1;i<4;i++) {
+      s += `<line x1="${px}" y1="${py+panelH/4*i}" x2="${px+panelW}" y2="${py+panelH/4*i}" stroke="${COLORS.grid}"/>`;
+      s += `<line x1="${px+panelW/4*i}" y1="${py}" x2="${px+panelW/4*i}" y2="${py+panelH}" stroke="${COLORS.grid}"/>`;
+    }
+    s += `<rect x="${px}" y="${py-22}" width="${panelW}" height="22" fill="${COLORS.primary}" opacity="0.15"/>`;
+    s += `<text x="${px+panelW/2}" y="${py-7}" text-anchor="middle" font-size="10" fill="${COLORS.primaryD}" font-weight="500" font-family="Roboto,sans-serif">${et}</text>`;
+    IDEB_SIM.filter(d=>d.etapa===et).forEach(d => {
+      const x = px + ((d.aprovacao-60)/40)*panelW;
+      const y = py + panelH - ((d.ideb-2)/6)*panelH;
+      s += `<circle cx="${x}" cy="${y}" r="2.2" fill="${COLORS.primary}" opacity="0.65"/>`;
+    });
+  });
+  s += `<text x="240" y="305" text-anchor="middle" font-size="12" fill="${COLORS.textMute}" font-family="Roboto,sans-serif">aprovacao</text>`;
+  s += `<text x="20" y="145" text-anchor="middle" font-size="12" fill="${COLORS.textMute}" font-family="Roboto,sans-serif" transform="rotate(-90 20 145)">ideb</text>`;
+  return svgWrap(s);
+}
+
+function drawColsHoriz() {
+  const agg = meanBy(IDEB_SIM, "municipio", "ideb").sort((a,b)=>b.mean-a.mean);
+  const a = axes({xlab:"ideb_medio", ylab:"municipio",
+    xticks: [{pos:0,label:"3"},{pos:0.33,label:"4"},{pos:0.66,label:"5"},{pos:1,label:"6"}],
+    yticks: agg.map((d,i)=>({pos:(i+0.5)/agg.length, label:d.key.slice(0,10)})),
+    panelX: 110, panelW: 340
+  });
+  let bars = "";
+  agg.forEach((d, i) => {
+    const w = ((d.mean-3)/3)*a.panelW;
+    const y = a.panelY + a.panelH - ((i+0.5)/agg.length)*a.panelH - 8;
+    bars += `<rect x="${a.panelX}" y="${y}" width="${Math.max(0,w)}" height="16" fill="${COLORS.primary}" opacity="0.85"/>`;
+  });
+  return svgWrap(a.svgBg + bars);
+}
+
+function drawDensity() {
+  const a = axes({xlab:"ideb", ylab:"density", xticks: tx_ideb,
+    yticks:[{pos:0,label:"0.0"},{pos:0.5,label:"0.3"},{pos:1,label:"0.6"}], panelW: 320});
+  let curves = "";
+  REDES.forEach((rede, ri) => {
+    const vals = IDEB_SIM.filter(d=>d.rede===rede).map(d=>d.ideb);
+    if (vals.length<5) return;
+    const mean = vals.reduce((a,b)=>a+b,0)/vals.length;
+    const sd = Math.sqrt(vals.reduce((s,v)=>s+(v-mean)*(v-mean),0)/vals.length);
+    let path = "M";
+    for (let i=0; i<=100; i++) {
+      const x = 2 + (i/100)*6;
+      const d = Math.exp(-Math.pow(x-mean,2)/(2*sd*sd)) / (sd*Math.sqrt(2*Math.PI));
+      const px = a.panelX + (i/100)*a.panelW;
+      const py = a.panelY + a.panelH - Math.min(1, d/0.6)*a.panelH;
+      path += `${i==0?"":"L"}${px},${py}`;
+    }
+    curves += `<path d="${path}" fill="none" stroke="${COLORS.cat[ri]}" stroke-width="2.5" opacity="0.85"/>`;
+  });
+  let leg = `<text x="410" y="35" font-size="11" fill="${COLORS.text}" font-family="Roboto,sans-serif" font-weight="500">rede</text>`;
+  REDES.forEach((c, i) => {
+    leg += `<line x1="412" y1="${58+i*22}" x2="432" y2="${58+i*22}" stroke="${COLORS.cat[i]}" stroke-width="3"/>`;
+    leg += `<text x="438" y="${62+i*22}" font-size="11" fill="${COLORS.text}" font-family="Roboto,sans-serif">${c}</text>`;
+  });
+  return svgWrap(a.svgBg + curves + leg, 530);
+}
+
+function drawFacetGrid() {
+  const panelW = 90, panelH = 80, gap = 8;
+  let s = "";
+  ETAPAS.forEach((et, ri) => {
+    REDES.forEach((rede, ci) => {
+      const px = 90 + ci*(panelW+gap);
+      const py = 30 + ri*(panelH+gap);
+      s += `<rect x="${px}" y="${py}" width="${panelW}" height="${panelH}" fill="white" stroke="${COLORS.grid}"/>`;
+      if (ri === 0) {
+        s += `<rect x="${px}" y="${py-18}" width="${panelW}" height="18" fill="${COLORS.primary}" opacity="0.15"/>`;
+        s += `<text x="${px+panelW/2}" y="${py-5}" text-anchor="middle" font-size="9" fill="${COLORS.primaryD}" font-weight="500" font-family="Roboto,sans-serif">${rede}</text>`;
+      }
+      if (ci === REDES.length-1) {
+        s += `<rect x="${px+panelW}" y="${py}" width="18" height="${panelH}" fill="${COLORS.primary}" opacity="0.15"/>`;
+        s += `<text x="${px+panelW+9}" y="${py+panelH/2}" text-anchor="middle" font-size="8" fill="${COLORS.primaryD}" font-weight="500" font-family="Roboto,sans-serif" transform="rotate(90 ${px+panelW+9} ${py+panelH/2})">${et}</text>`;
+      }
+      IDEB_SIM.filter(d=>d.etapa===et && d.rede===rede).forEach(d => {
+        const x = px + ((d.aprovacao-60)/40)*panelW;
+        const y = py + panelH - ((d.ideb-2)/6)*panelH;
+        s += `<circle cx="${x}" cy="${y}" r="1.8" fill="${COLORS.cat[REDES.indexOf(rede)]}" opacity="0.75"/>`;
+      });
+    });
+  });
+  s += `<text x="270" y="320" text-anchor="middle" font-size="11" fill="${COLORS.textMute}" font-family="Roboto,sans-serif">aprovacao</text>`;
+  s += `<text x="35" y="170" text-anchor="middle" font-size="11" fill="${COLORS.textMute}" font-family="Roboto,sans-serif" transform="rotate(-90 35 170)">ideb</text>`;
+  return svgWrap(s, 560);
+}
+
+function drawWithLabs() {
+  const a = axes({xlab:"aprovacao (%)", ylab:"IDEB", xticks: tx_aprov, yticks: ty_ideb, panelY: 60});
+  let pts = "";
+  IDEB_SIM.forEach(d => {
+    const x = a.panelX + ((d.aprovacao-60)/40)*a.panelW;
+    const y = a.panelY + a.panelH - ((d.ideb-2)/6)*a.panelH;
+    pts += `<circle cx="${x}" cy="${y}" r="3" fill="${COLORS.primary}" opacity="0.65"/>`;
+  });
+  const titulo = `<text x="70" y="28" font-size="16" fill="${COLORS.text}" font-weight="500" font-family="Roboto,sans-serif">IDEB vs taxa de aprovacao</text>`;
+  const sub = `<text x="70" y="46" font-size="11" fill="${COLORS.textMute}" font-family="Roboto,sans-serif">Escolas de Alagoas, 2007-2021</text>`;
+  return svgWrap(titulo + sub + a.svgBg + pts);
+}
+
+function drawClassic() {
+  const panelX=70, panelY=20, panelW=380, panelH=260;
+  let s = "";
+  s += `<line x1="${panelX}" y1="${panelY+panelH}" x2="${panelX+panelW}" y2="${panelY+panelH}" stroke="${COLORS.text}" stroke-width="1"/>`;
+  s += `<line x1="${panelX}" y1="${panelY}" x2="${panelX}" y2="${panelY+panelH}" stroke="${COLORS.text}" stroke-width="1"/>`;
+  IDEB_SIM.forEach(d => {
+    const x = panelX + ((d.aprovacao-60)/40)*panelW;
+    const y = panelY + panelH - ((d.ideb-2)/6)*panelH;
+    s += `<circle cx="${x}" cy="${y}" r="3" fill="${COLORS.primary}" opacity="0.65"/>`;
+  });
+  tx_aprov.forEach(t => s += `<text x="${panelX+t.pos*panelW}" y="${panelY+panelH+18}" text-anchor="middle" font-size="10" fill="${COLORS.textMute}" font-family="Roboto,sans-serif">${t.label}</text>`);
+  ty_ideb.forEach(t => s += `<text x="${panelX-8}" y="${panelY+panelH-t.pos*panelH+4}" text-anchor="end" font-size="10" fill="${COLORS.textMute}" font-family="Roboto,sans-serif">${t.label}</text>`);
+  s += `<text x="${panelX+panelW/2}" y="${panelY+panelH+50}" text-anchor="middle" font-size="12" fill="${COLORS.textMute}" font-family="Roboto,sans-serif">aprovacao</text>`;
+  s += `<text x="20" y="${panelY+panelH/2}" text-anchor="middle" font-size="12" fill="${COLORS.textMute}" font-family="Roboto,sans-serif" transform="rotate(-90 20 ${panelY+panelH/2})">ideb</text>`;
+  return svgWrap(s);
+}
+
+function drawYlim() {
+  const a = axes({xlab:"aprovacao", ylab:"ideb",
+    xticks: tx_aprov,
+    yticks: [{pos:0,label:"4"},{pos:0.25,label:"5"},{pos:0.5,label:"6"},{pos:0.75,label:"7"},{pos:1,label:"8"}]
+  });
+  let pts = "";
+  IDEB_SIM.filter(d=>d.ideb>=4).forEach(d => {
+    const x = a.panelX + ((d.aprovacao-60)/40)*a.panelW;
+    const y = a.panelY + a.panelH - ((d.ideb-4)/4)*a.panelH;
+    pts += `<circle cx="${x}" cy="${y}" r="3" fill="${COLORS.primary}" opacity="0.65"/>`;
+  });
+  return svgWrap(a.svgBg + pts);
+}
+
+function drawJitter() {
+  const a = axes({xlab:"rede", ylab:"ideb",
+    xticks: REDES.map((c,i)=>({pos:(i+0.5)/REDES.length, label:c})),
+    yticks: ty_ideb
+  });
+  let bx = ""; const r = rng(91);
+  REDES.forEach((rede, i) => {
+    const vals = IDEB_SIM.filter(d=>d.rede===rede).map(d=>d.ideb).sort((a,b)=>a-b);
+    if (vals.length<2) return;
+    const q1 = vals[Math.floor(vals.length*0.25)];
+    const med = vals[Math.floor(vals.length*0.5)];
+    const q3 = vals[Math.floor(vals.length*0.75)];
+    const cx = (i+0.5)/REDES.length;
+    const xx = a.panelX + cx*a.panelW;
+    const y = v => a.panelY + a.panelH - ((v-2)/6)*a.panelH;
+    const color = COLORS.cat[i];
+    bx += `<rect x="${xx-18}" y="${y(q3)}" width="36" height="${y(q1)-y(q3)}" fill="white" stroke="${color}" stroke-width="1.5"/>`;
+    bx += `<line x1="${xx-18}" y1="${y(med)}" x2="${xx+18}" y2="${y(med)}" stroke="${color}" stroke-width="2"/>`;
+    vals.forEach(v => {
+      const jx = xx + (r()-0.5)*30;
+      bx += `<circle cx="${jx}" cy="${y(v)}" r="2.2" fill="${color}" opacity="0.55"/>`;
+    });
+  });
+  return svgWrap(a.svgBg + bx);
+}
+
+function drawViolin() {
+  const a = axes({xlab:"rede", ylab:"ideb",
+    xticks: REDES.map((c,i)=>({pos:(i+0.5)/REDES.length, label:c})),
+    yticks: ty_ideb
+  });
+  let viols = "";
+  REDES.forEach((rede, i) => {
+    const vals = IDEB_SIM.filter(d=>d.rede===rede).map(d=>d.ideb);
+    if (vals.length<5) return;
+    const mean = vals.reduce((a,b)=>a+b,0)/vals.length;
+    const sd = Math.sqrt(vals.reduce((s,v)=>s+(v-mean)*(v-mean),0)/vals.length);
+    const cx = (i+0.5)/REDES.length;
+    const xx = a.panelX + cx*a.panelW;
+    const y = v => a.panelY + a.panelH - ((v-2)/6)*a.panelH;
+    let left = "", right = "";
+    const steps = 30;
+    for (let s=0; s<=steps; s++) {
+      const v = 2 + (s/steps)*6;
+      const d = Math.exp(-Math.pow(v-mean,2)/(2*sd*sd)) * 25;
+      left += `${s==0?"M":"L"}${xx-d},${y(v)} `;
+      right = `L${xx+d},${y(v)} ` + right;
+    }
+    viols += `<path d="${left} ${right} Z" fill="${COLORS.cat[i]}" opacity="0.4" stroke="${COLORS.cat[i]}" stroke-width="1.5"/>`;
+  });
+  return svgWrap(a.svgBg + viols);
+}
+
+function drawMultiLine() {
+  const a = axes({xlab:"ano", ylab:"ideb_medio",
+    xticks: ANOS.map((y,i)=>({pos:i/(ANOS.length-1), label:String(y)})),
+    yticks:[{pos:0,label:"3"},{pos:0.3,label:"4.5"},{pos:0.6,label:"6"},{pos:1,label:"7.5"}], panelW:320
+  });
+  let s = "";
+  REDES.forEach((rede, ri) => {
+    const points = [];
+    ANOS.forEach((ano, i) => {
+      const sub = IDEB_SIM.filter(d=>d.rede===rede && d.ano===ano).map(d=>d.ideb);
+      if (sub.length > 0) {
+        const m = sub.reduce((a,b)=>a+b,0)/sub.length;
+        points.push({i, m});
+      }
+    });
+    if (points.length<2) return;
+    let path = "M";
+    points.forEach((p, idx) => {
+      const x = a.panelX + (p.i/(ANOS.length-1))*a.panelW;
+      const y = a.panelY + a.panelH - ((p.m-3)/4.5)*a.panelH;
+      path += `${idx==0?"":"L"}${x},${y}`;
+      s += `<circle cx="${x}" cy="${y}" r="3.5" fill="${COLORS.cat[ri]}"/>`;
+    });
+    s += `<path d="${path}" fill="none" stroke="${COLORS.cat[ri]}" stroke-width="2"/>`;
+  });
+  let leg = `<text x="410" y="35" font-size="11" fill="${COLORS.text}" font-family="Roboto,sans-serif" font-weight="500">rede</text>`;
+  REDES.forEach((c, i) => {
+    leg += `<line x1="412" y1="${58+i*22}" x2="432" y2="${58+i*22}" stroke="${COLORS.cat[i]}" stroke-width="3"/>`;
+    leg += `<text x="438" y="${62+i*22}" font-size="11" fill="${COLORS.text}" font-family="Roboto,sans-serif">${c}</text>`;
+  });
+  return svgWrap(a.svgBg + s + leg, 530);
+}
+
+function drawColStack() {
+  const a = axes({xlab:"rede", ylab:"count",
+    xticks: REDES.map((c,i)=>({pos:(i+0.5)/REDES.length, label:c})),
+    yticks: [{pos:0,label:"0"},{pos:0.5,label:"30"},{pos:1,label:"60"}], panelW: 320
+  });
+  let bars = "";
+  const etapaCores = [COLORS.cat[0], COLORS.cat[3], COLORS.cat[2]];
+  REDES.forEach((rede, ri) => {
+    let cumul = 0;
+    const cx = (ri+0.5)/REDES.length;
+    const xx = a.panelX + cx*a.panelW;
+    ETAPAS.forEach((et, ei) => {
+      const n = IDEB_SIM.filter(d=>d.rede===rede && d.etapa===et).length;
+      const h = (n/60)*a.panelH;
+      const y0 = a.panelY + a.panelH - cumul - h;
+      bars += `<rect x="${xx-22}" y="${y0}" width="44" height="${h}" fill="${etapaCores[ei]}" stroke="white" stroke-width="1.5"/>`;
+      cumul += h;
+    });
+  });
+  let leg = `<text x="410" y="35" font-size="11" fill="${COLORS.text}" font-family="Roboto,sans-serif" font-weight="500">etapa</text>`;
+  ETAPAS.forEach((c, i) => {
+    leg += `<rect x="412" y="${52+i*24}" width="16" height="16" fill="${etapaCores[i]}"/>`;
+    leg += `<text x="432" y="${65+i*24}" font-size="11" fill="${COLORS.text}" font-family="Roboto,sans-serif">${c}</text>`;
+  });
+  return svgWrap(a.svgBg + bars + leg, 530);
+}
+
+function drawSmoothByGroup() {
+  const a = axes({xlab:"aprovacao", ylab:"ideb", xticks: tx_aprov, yticks: ty_ideb, panelW: 320});
+  let pts = "";
+  IDEB_SIM.forEach(d => {
+    const x = a.panelX + ((d.aprovacao-60)/40)*a.panelW;
+    const y = a.panelY + a.panelH - ((d.ideb-2)/6)*a.panelH;
+    const ci = REDES.indexOf(d.rede);
+    pts += `<circle cx="${x}" cy="${y}" r="2.5" fill="${COLORS.cat[ci]}" opacity="0.55"/>`;
+  });
+  REDES.forEach((rede, ri) => {
+    const sub = IDEB_SIM.filter(d=>d.rede===rede);
+    if (sub.length<3) return;
+    const xs = sub.map(d=>d.aprovacao), ys = sub.map(d=>d.ideb);
+    const mx = xs.reduce((a,b)=>a+b,0)/xs.length;
+    const my = ys.reduce((a,b)=>a+b,0)/ys.length;
+    let num=0, den=0;
+    for (let i=0;i<xs.length;i++){ num+=(xs[i]-mx)*(ys[i]-my); den+=Math.pow(xs[i]-mx,2); }
+    const slope=num/den, intercept=my-slope*mx;
+    const xL=60, xR=100;
+    const px = v => a.panelX + ((v-60)/40)*a.panelW;
+    const py = v => a.panelY + a.panelH - ((v-2)/6)*a.panelH;
+    pts += `<line x1="${px(xL)}" y1="${py(slope*xL+intercept)}" x2="${px(xR)}" y2="${py(slope*xR+intercept)}" stroke="${COLORS.cat[ri]}" stroke-width="2.5"/>`;
+  });
+  let leg = `<text x="410" y="35" font-size="11" fill="${COLORS.text}" font-family="Roboto,sans-serif" font-weight="500">rede</text>`;
+  REDES.forEach((c, i) => {
+    leg += `<line x1="412" y1="${58+i*22}" x2="432" y2="${58+i*22}" stroke="${COLORS.cat[i]}" stroke-width="3"/>`;
+    leg += `<text x="438" y="${62+i*22}" font-size="11" fill="${COLORS.text}" font-family="Roboto,sans-serif">${c}</text>`;
+  });
+  return svgWrap(a.svgBg + pts + leg, 530);
+}
+
+function drawFinalBoss() {
+  const panelW = 110, gap = 10, panelH = 220;
+  let s = "";
+  s += `<text x="40" y="22" font-size="15" fill="${COLORS.text}" font-weight="500" font-family="Roboto,sans-serif">IDEB em Alagoas por etapa e rede</text>`;
+  ETAPAS.forEach((et, di) => {
+    const px = 40 + di*(panelW+gap), py = 55;
+    s += `<rect x="${px}" y="${py}" width="${panelW}" height="${panelH}" fill="white" stroke="${COLORS.grid}"/>`;
+    s += `<rect x="${px}" y="${py-20}" width="${panelW}" height="20" fill="${COLORS.primary}" opacity="0.15"/>`;
+    s += `<text x="${px+panelW/2}" y="${py-6}" text-anchor="middle" font-size="10" fill="${COLORS.primaryD}" font-weight="500" font-family="Roboto,sans-serif">${et}</text>`;
+    const sub = IDEB_SIM.filter(d=>d.etapa===et);
+    sub.forEach(d => {
+      const x = px + ((d.aprovacao-60)/40)*panelW;
+      const y = py + panelH - ((d.ideb-2)/6)*panelH;
+      const ci = REDES.indexOf(d.rede);
+      s += `<circle cx="${x}" cy="${y}" r="2.2" fill="${['#66c2a5','#fc8d62','#8da0cb','#e78ac3'][ci]}" opacity="0.75"/>`;
+    });
+    REDES.forEach((rede, ri) => {
+      const sc = sub.filter(d=>d.rede===rede);
+      if (sc.length<3) return;
+      const xs = sc.map(d=>d.aprovacao), ys = sc.map(d=>d.ideb);
+      const mx = xs.reduce((a,b)=>a+b,0)/xs.length;
+      const my = ys.reduce((a,b)=>a+b,0)/ys.length;
+      let num=0, den=0;
+      for (let i=0;i<xs.length;i++){ num+=(xs[i]-mx)*(ys[i]-my); den+=Math.pow(xs[i]-mx,2); }
+      const slope = den?num/den:0, intercept = my-slope*mx;
+      const X1 = px, X2 = px + panelW;
+      const Y1 = py + panelH - ((slope*60+intercept-2)/6)*panelH;
+      const Y2 = py + panelH - ((slope*100+intercept-2)/6)*panelH;
+      s += `<line x1="${X1}" y1="${Y1}" x2="${X2}" y2="${Y2}" stroke="${['#66c2a5','#fc8d62','#8da0cb','#e78ac3'][ri]}" stroke-width="2"/>`;
+    });
+  });
+  s += `<text x="220" y="295" text-anchor="middle" font-size="12" fill="${COLORS.textMute}" font-family="Roboto,sans-serif">aprovacao</text>`;
+  s += `<text x="15" y="160" text-anchor="middle" font-size="12" fill="${COLORS.textMute}" font-family="Roboto,sans-serif" transform="rotate(-90 15 160)">ideb</text>`;
+  s += `<text x="400" y="55" font-size="11" fill="${COLORS.text}" font-family="Roboto,sans-serif" font-weight="500">rede</text>`;
+  REDES.forEach((c, i) => {
+    s += `<line x1="402" y1="${78+i*20}" x2="420" y2="${78+i*20}" stroke="${['#66c2a5','#fc8d62','#8da0cb','#e78ac3'][i]}" stroke-width="3"/>`;
+    s += `<text x="426" y="${82+i*20}" font-size="10" fill="${COLORS.text}" font-family="Roboto,sans-serif">${c}</text>`;
+  });
+  return svgWrap(s, 520);
+}
+
+const SVG_FNS = {
+  drawScatter, drawScatterColor, drawLine, drawHistogram, drawBoxplot,
+  drawScatterSmooth, drawScatterFacet, drawScatterBrewer, drawColsHoriz,
+  drawBoxplotFlip, drawDensity, drawFacetGrid, drawWithLabs, drawClassic,
+  drawYlim, drawJitter, drawViolin, drawMultiLine, drawColStack,
+  drawSmoothByGroup, drawFinalBoss
+};
+
+// =====================================================================
+// 20 FASES
+// =====================================================================
+const FASES = [
+  { title:"Fase 1 — Scatter básico",
+    desc:"Dispersão entre a taxa de aprovação e a nota IDEB das escolas.",
+    svg:"drawScatter",
+    template:["ideb %>%\n  ggplot(aes(x = aprovacao, y = ",{slot:0},")) +\n  ",{slot:1},"()"],
+    answers:["ideb","geom_point"],
+    bank:["ideb","rede","etapa","ano","geom_point","geom_line","geom_col"],
+    hint:"Eixo Y é a nota IDEB. Pontos individuais = geom_point()." },
+
+  { title:"Fase 2 — Cor por rede",
+    desc:"Cada rede (Municipal, Estadual, Federal, Privada) deve ter uma cor diferente.",
+    svg:"drawScatterColor",
+    template:["ideb %>%\n  ggplot(aes(x = aprovacao, y = ideb, color = ",{slot:0},")) +\n  geom_point()"],
+    answers:["rede"],
+    bank:["rede","etapa","ano","municipio","ideb"],
+    hint:"A legenda mostra Municipal, Estadual, Federal, Privada — é a variável rede." },
+
+  { title:"Fase 3 — Linha temporal",
+    desc:"IDEB médio por ano. Conecte os pontos com uma linha.",
+    svg:"drawLine",
+    template:["ideb %>%\n  group_by(ano) %>%\n  summarise(ideb_medio = mean(ideb)) %>%\n  ggplot(aes(x = ano, y = ideb_medio)) +\n  ",{slot:0},"()"],
+    answers:["geom_line"],
+    bank:["geom_line","geom_point","geom_col","geom_smooth","geom_area"],
+    hint:"Para conectar pontos em sequência temporal, use geom_line()." },
+
+  { title:"Fase 4 — Histograma",
+    desc:"Distribuição das notas IDEB.",
+    svg:"drawHistogram",
+    template:["ideb %>%\n  ggplot(aes(x = ",{slot:0},")) +\n  ",{slot:1},"(bins = 20)"],
+    answers:["ideb","geom_histogram"],
+    bank:["ideb","ano","aprovacao","geom_histogram","geom_density","geom_bar"],
+    hint:"Histograma = geom_histogram(). A variável é a nota IDEB." },
+
+  { title:"Fase 5 — Boxplot por rede",
+    desc:"Compare a distribuição do IDEB entre as redes.",
+    svg:"drawBoxplot",
+    template:["ideb %>%\n  ggplot(aes(x = ",{slot:0},", y = ideb)) +\n  ",{slot:1},"()"],
+    answers:["rede","geom_boxplot"],
+    bank:["rede","ideb","ano","etapa","geom_boxplot","geom_violin","geom_point"],
+    hint:"O eixo X tem categorias (Municipal, Estadual...) — é a variável rede." },
+
+  { title:"Fase 6 — Scatter + regressão linear",
+    desc:"Adicione uma linha de tendência (método linear) sobre o scatter.",
+    svg:"drawScatterSmooth",
+    template:["ideb %>%\n  ggplot(aes(x = aprovacao, y = ideb)) +\n  geom_point() +\n  ",{slot:0},'(method = "lm")'],
+    answers:["geom_smooth"],
+    bank:["geom_smooth","geom_line","geom_abline","geom_density","stat_summary"],
+    hint:"A camada que ajusta modelos / suaviza é geom_smooth()." },
+
+  { title:"Fase 7 — Facet por etapa",
+    desc:"Divida em pequenos múltiplos, um painel por etapa de ensino.",
+    svg:"drawScatterFacet",
+    template:["ideb %>%\n  ggplot(aes(x = aprovacao, y = ideb)) +\n  geom_point() +\n  ",{slot:0},"(~ etapa)"],
+    answers:["facet_wrap"],
+    bank:["facet_wrap","facet_grid","scale_x_log10","coord_flip","geom_smooth"],
+    hint:"Com uma única variável de facetamento, use facet_wrap()." },
+
+  { title:"Fase 8 — Paleta Brewer",
+    desc:"Use a paleta 'Set2' do ColorBrewer no scatter colorido por rede.",
+    svg:"drawScatterBrewer",
+    template:["ideb %>%\n  ggplot(aes(x = aprovacao, y = ideb, color = rede)) +\n  geom_point() +\n  ",{slot:0},'(palette = "Set2")'],
+    answers:["scale_color_brewer"],
+    bank:["scale_color_brewer","scale_fill_brewer","scale_color_viridis_d","scale_color_manual","scale_color_gradient"],
+    hint:"Paleta de COR (não fill) categórica do ColorBrewer: scale_color_brewer()." },
+
+  { title:"Fase 9 — Barras horizontais",
+    desc:"IDEB médio por município, com coord_flip() para barras horizontais.",
+    svg:"drawColsHoriz",
+    template:["ideb %>%\n  group_by(municipio) %>%\n  summarise(ideb_medio = mean(ideb)) %>%\n  ggplot(aes(x = reorder(municipio, ideb_medio), y = ideb_medio)) +\n  geom_col() +\n  ",{slot:0},"()"],
+    answers:["coord_flip"],
+    bank:["coord_flip","coord_polar","coord_cartesian","coord_fixed","scale_x_reverse"],
+    hint:"Para trocar X e Y, use coord_flip()." },
+
+  { title:"Fase 10 — Boxplot flipado",
+    desc:"Boxplot do IDEB por rede, com eixos invertidos.",
+    svg:"drawBoxplotFlip",
+    template:["ideb %>%\n  ggplot(aes(x = rede, y = ideb)) +\n  ",{slot:0},"() +\n  ",{slot:1},"()"],
+    answers:["geom_boxplot","coord_flip"],
+    bank:["geom_boxplot","coord_flip","geom_violin","geom_col","coord_polar"],
+    hint:"Dois slots: geometria do boxplot e inversão de coordenadas." },
+
+  { title:"Fase 11 — Densidade por rede",
+    desc:"Curvas de densidade do IDEB, uma para cada rede.",
+    svg:"drawDensity",
+    template:["ideb %>%\n  ggplot(aes(x = ideb, color = ",{slot:0},")) +\n  ",{slot:1},"()"],
+    answers:["rede","geom_density"],
+    bank:["rede","etapa","ano","geom_density","geom_histogram","geom_freqpoly"],
+    hint:"Cada curva é uma rede (color = rede), e a geom é geom_density()." },
+
+  { title:"Fase 12 — facet_grid",
+    desc:"Cruze etapa nas linhas e rede nas colunas com facet_grid().",
+    svg:"drawFacetGrid",
+    template:["ideb %>%\n  ggplot(aes(x = aprovacao, y = ideb)) +\n  geom_point() +\n  ",{slot:0},"(",{slot:1}," ~ ",{slot:2},")"],
+    answers:["facet_grid","etapa","rede"],
+    bank:["facet_grid","facet_wrap","etapa","rede","ano","ideb"],
+    hint:"facet_grid(linhas ~ colunas) — etapa nas linhas, rede nas colunas." },
+
+  { title:"Fase 13 — Título e rótulos com labs()",
+    desc:"Adicione título, subtítulo e rótulos personalizados de eixos.",
+    svg:"drawWithLabs",
+    template:['ideb %>%\n  ggplot(aes(x = aprovacao, y = ideb)) +\n  geom_point() +\n  ',{slot:0},'(title = "IDEB vs taxa de aprovacao",\n       subtitle = "Escolas de Alagoas, 2007-2021",\n       x = "aprovacao (%)",\n       y = "IDEB")'],
+    answers:["labs"],
+    bank:["labs","ggtitle","xlab","annotate","geom_text"],
+    hint:"labs() agrupa title, subtitle, x, y, caption num único comando." },
+
+  { title:"Fase 14 — theme_classic()",
+    desc:"Visual clássico: apenas linhas dos eixos, sem grade.",
+    svg:"drawClassic",
+    template:["ideb %>%\n  ggplot(aes(x = aprovacao, y = ideb)) +\n  geom_point() +\n  ",{slot:0},"()"],
+    answers:["theme_classic"],
+    bank:["theme_classic","theme_minimal","theme_bw","theme_void","theme_dark"],
+    hint:"theme_classic() = sem grid, apenas linhas dos eixos." },
+
+  { title:"Fase 15 — Limitar Y com coord_cartesian()",
+    desc:"Mostre apenas a faixa IDEB ≥ 4, mantendo as estatísticas com todos os dados.",
+    svg:"drawYlim",
+    template:["ideb %>%\n  ggplot(aes(x = aprovacao, y = ideb)) +\n  geom_point() +\n  ",{slot:0},"(ylim = c(4, 8))"],
+    answers:["coord_cartesian"],
+    bank:["coord_cartesian","scale_y_continuous","ylim","coord_flip","scale_y_log10"],
+    hint:"coord_cartesian() faz zoom sem remover dados." },
+
+  { title:"Fase 16 — Boxplot com jitter",
+    desc:"Mostre as observações individuais sobre o boxplot.",
+    svg:"drawJitter",
+    template:["ideb %>%\n  ggplot(aes(x = rede, y = ideb)) +\n  geom_boxplot() +\n  ",{slot:0},"(width = 0.2, alpha = 0.5)"],
+    answers:["geom_jitter"],
+    bank:["geom_jitter","geom_point","geom_dotplot","geom_rug","geom_count"],
+    hint:"Para evitar sobreposição em variável categórica, use geom_jitter()." },
+
+  { title:"Fase 17 — Violin plot",
+    desc:"Substitua o boxplot por um violin plot.",
+    svg:"drawViolin",
+    template:["ideb %>%\n  ggplot(aes(x = rede, y = ideb)) +\n  ",{slot:0},"()"],
+    answers:["geom_violin"],
+    bank:["geom_violin","geom_boxplot","geom_density","geom_area","geom_ribbon"],
+    hint:"geom_violin() mostra a densidade espelhada como um violino." },
+
+  { title:"Fase 18 — Linha + ponto por grupo",
+    desc:"Para cada rede, conecte os IDEBs médios anuais com linha e marque os pontos.",
+    svg:"drawMultiLine",
+    template:["ideb %>%\n  group_by(ano, rede) %>%\n  summarise(ideb_medio = mean(ideb)) %>%\n  ggplot(aes(x = ano, y = ideb_medio, color = rede)) +\n  ",{slot:0},"() +\n  ",{slot:1},"()"],
+    answers:["geom_line","geom_point"],
+    bank:["geom_line","geom_point","geom_smooth","geom_col","geom_path"],
+    hint:"Primeiro a linha, depois o ponto (a ordem afeta a sobreposição)." },
+
+  { title:"Fase 19 — Barras empilhadas",
+    desc:"Contagem de escolas por rede, empilhada por etapa (fill = etapa).",
+    svg:"drawColStack",
+    template:["ideb %>%\n  ggplot(aes(x = rede, fill = ",{slot:0},")) +\n  ",{slot:1},"()"],
+    answers:["etapa","geom_bar"],
+    bank:["etapa","rede","ano","ideb","geom_bar","geom_col","geom_histogram"],
+    hint:"geom_bar() conta automaticamente. O empilhamento vem de fill = etapa." },
+
+  { title:"Fase 20 — Boss final",
+    desc:"Junte tudo: scatter colorido por rede, regressão por rede, facetado por etapa, paleta Brewer e tema clássico.",
+    svg:"drawFinalBoss",
+    template:['ideb %>%\n  ggplot(aes(x = aprovacao, y = ideb, color = rede)) +\n  geom_point(alpha = 0.6) +\n  ',{slot:0},'(method = "lm", se = FALSE) +\n  ',{slot:1},'(~ etapa) +\n  ',{slot:2},'(palette = "Set2") +\n  labs(title = "IDEB em Alagoas por etapa e rede") +\n  ',{slot:3},"()"],
+    answers:["geom_smooth","facet_wrap","scale_color_brewer","theme_classic"],
+    bank:["geom_smooth","facet_wrap","scale_color_brewer","theme_classic",
+          "geom_line","facet_grid","scale_fill_brewer","theme_minimal"],
+    hint:"Ordem: regressão → facet → paleta → tema. Cuidado: fill vs color, wrap vs grid." }
+];
+
+// =====================================================================
+// ENGINE
+// =====================================================================
+const estado = {
+  fase: 0, pontos: 0, vidas: 3, tentativas: 0,
+  dicasUsadas: 0, errosTotais: 0, hintUsadaNaFase: false,
+  slotsFilled: []
+};
+
+function trocarTela(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function iniciarJogo() {
+  Object.assign(estado, {fase:0, pontos:0, vidas:3, tentativas:0, dicasUsadas:0, errosTotais:0});
+  document.getElementById('hud').style.display = 'flex';
+  trocarTela('screen-game');
+  carregarFase();
+}
+
+function reiniciarJogo() { iniciarJogo(); }
+
+function carregarFase() {
+  const f = FASES[estado.fase];
+  estado.slotsFilled = new Array(f.answers.length).fill(null);
+  estado.tentativas = 0;
+  estado.hintUsadaNaFase = false;
+
+  document.getElementById('hud-level').textContent = estado.fase + 1;
+  document.getElementById('hud-total').textContent = FASES.length;
+  document.getElementById('hud-score').textContent = estado.pontos;
+  document.getElementById('hud-lives').textContent = "♥".repeat(estado.vidas) + "♡".repeat(3 - estado.vidas);
+  document.getElementById('progress-fill').style.width = ((estado.fase) / FASES.length * 100) + '%';
+
+  document.getElementById('level-title').textContent = f.title;
+  document.getElementById('level-desc').textContent = f.desc;
+  document.getElementById('target-svg').innerHTML = SVG_FNS[f.svg]();
+
+  renderTemplate();
+  renderBank();
+
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('btn-check').style.display = '';
+  document.getElementById('btn-next').style.display = 'none';
+}
+
+function renderTemplate() {
+  const f = FASES[estado.fase];
+  const cont = document.getElementById('code-template');
+  cont.innerHTML = '';
+  f.template.forEach(piece => {
+    if (typeof piece === 'string') {
+      const span = document.createElement('span');
+      span.textContent = piece;        // texto puro, sem highlighting
+      cont.appendChild(span);
+    } else {
+      const slot = document.createElement('span');
+      slot.className = 'slot';
+      slot.dataset.slotIdx = piece.slot;
+      slot.textContent = '___';
+      if (estado.slotsFilled[piece.slot]) {
+        slot.classList.add('filled');
+        slot.textContent = estado.slotsFilled[piece.slot];
+      }
+      slot.addEventListener('dragover', e => { e.preventDefault(); slot.classList.add('over'); });
+      slot.addEventListener('dragleave', () => slot.classList.remove('over'));
+      slot.addEventListener('drop', e => {
+        e.preventDefault();
+        slot.classList.remove('over');
+        const val = e.dataTransfer.getData('text/plain');
+        if (!val) return;
+        estado.slotsFilled[piece.slot] = val;
+        renderTemplate(); renderBank();
+      });
+      slot.addEventListener('click', () => {
+        if (estado.slotsFilled[piece.slot]) {
+          estado.slotsFilled[piece.slot] = null;
+          renderTemplate(); renderBank();
+        }
+      });
+      cont.appendChild(slot);
+    }
+  });
+}
+
+function renderBank() {
+  const f = FASES[estado.fase];
+  const bank = document.getElementById('block-bank');
+  bank.innerHTML = '';
+  const usados = {};
+  estado.slotsFilled.forEach(v => { if (v) usados[v] = (usados[v]||0) + 1; });
+  const embaralhado = f.bank.slice();
+  const r = rng(estado.fase * 37 + 1);
+  for (let i = embaralhado.length-1; i>0; i--) {
+    const j = Math.floor(r()*(i+1));
+    [embaralhado[i], embaralhado[j]] = [embaralhado[j], embaralhado[i]];
+  }
+  embaralhado.forEach(b => {
+    const el = document.createElement('div');
+    el.className = 'block';
+    if (usados[b]) el.classList.add('used');
+    el.textContent = b;
+    el.draggable = true;
+    el.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', b); el.classList.add('dragging'); });
+    el.addEventListener('dragend', () => el.classList.remove('dragging'));
+    bank.appendChild(el);
+  });
+}
+
+// (sem syntax highlighting — código fica como texto puro, igual no console R)
+
+function verificar() {
+  const f = FASES[estado.fase];
+  if (estado.slotsFilled.some(v => v === null)) {
+    mostrarFeedback('error', 'Preencha todos os slots antes de verificar.', 'error');
+    return;
+  }
+  const errados = [];
+  f.answers.forEach((ans, i) => { if (estado.slotsFilled[i] !== ans) errados.push(i); });
+
+  document.querySelectorAll('.slot').forEach(s => {
+    const idx = parseInt(s.dataset.slotIdx);
+    s.classList.remove('correct','wrong');
+    if (errados.includes(idx)) s.classList.add('wrong');
+    else if (estado.slotsFilled[idx]) s.classList.add('correct');
+  });
+
+  if (errados.length === 0) {
+    let ganho = 100;
+    if (estado.tentativas === 1) ganho = 60;
+    else if (estado.tentativas >= 2) ganho = 30;
+    if (estado.hintUsadaNaFase) ganho = Math.max(10, ganho - 30);
+    estado.pontos += ganho;
+    document.getElementById('hud-score').textContent = estado.pontos;
+    mostrarFeedback('success',
+      `Acertou! +${ganho} pontos. ` + (estado.fase < FASES.length-1 ? 'Próxima fase liberada.' : 'Você terminou todas as fases.'),
+      'check_circle');
+    document.getElementById('btn-check').style.display = 'none';
+    document.getElementById('btn-next').style.display = '';
+    document.getElementById('progress-fill').style.width = ((estado.fase+1) / FASES.length * 100) + '%';
+    confetti();
+  } else {
+    estado.tentativas++;
+    estado.errosTotais++;
+    estado.vidas--;
+    document.getElementById('hud-lives').textContent = "♥".repeat(Math.max(0,estado.vidas)) + "♡".repeat(3-Math.max(0,estado.vidas));
+    const dirPanel = document.querySelectorAll('.panel-game')[1];
+    if (dirPanel) { dirPanel.classList.add('shake'); setTimeout(()=>dirPanel.classList.remove('shake'), 400); }
+    if (estado.vidas <= 0) {
+      mostrarFeedback('error', `Sem vidas. Resposta correta: ${f.answers.join(', ')}. Avançando...`, 'error');
+      document.getElementById('btn-check').style.display = 'none';
+      document.getElementById('btn-next').style.display = '';
+      estado.vidas = 1;
+    } else {
+      mostrarFeedback('error', `${errados.length} slot(s) incorreto(s). Tente de novo.`, 'cancel');
+    }
+  }
+}
+
+function mostrarFeedback(tipo, msg, icone) {
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback show ' + tipo;
+  document.getElementById('feedback-icon').textContent = icone || 'info';
+  document.getElementById('feedback-msg').textContent = msg;
+}
+
+function usarDica() {
+  if (estado.hintUsadaNaFase) { mostrarFeedback('hint', 'Você já usou a dica desta fase.', 'lightbulb'); return; }
+  estado.hintUsadaNaFase = true;
+  estado.dicasUsadas++;
+  estado.pontos = Math.max(0, estado.pontos - 30);
+  document.getElementById('hud-score').textContent = estado.pontos;
+  mostrarFeedback('hint', FASES[estado.fase].hint, 'lightbulb');
+}
+
+function reiniciarFase() {
+  estado.slotsFilled = new Array(FASES[estado.fase].answers.length).fill(null);
+  renderTemplate(); renderBank();
+  document.getElementById('feedback').className = 'feedback';
+}
+
+function proximaFase() {
+  estado.fase++;
+  if (estado.fase >= FASES.length) mostrarFim();
+  else carregarFase();
+}
+
+function mostrarFim() {
+  document.getElementById('hud').style.display = 'none';
+  document.getElementById('end-score').textContent = estado.pontos;
+  document.getElementById('end-level').textContent = FASES.length;
+  document.getElementById('end-hints').textContent = estado.dicasUsadas;
+  document.getElementById('end-errors').textContent = estado.errosTotais;
+
+  const maxPts = FASES.length * 100;
+  const pct = estado.pontos / maxPts;
+  let stars = '⭐', titulo = 'Bom começo';
+  let msg = 'Você completou todas as fases. Que tal jogar de novo para melhorar a pontuação?';
+  if (pct >= 0.85) { stars = '⭐⭐⭐'; titulo = 'Mestre do ggplot'; msg = 'Pontuação excelente. Você domina a gramática dos gráficos.'; }
+  else if (pct >= 0.6) { stars = '⭐⭐'; titulo = 'Muito bem'; msg = 'Você foi bem. Revise as fases em que errou para subir de nível.'; }
+  document.getElementById('end-title').textContent = titulo;
+  document.getElementById('end-msg').textContent = msg;
+  document.getElementById('end-stars').textContent = stars;
+  trocarTela('screen-end');
+  confetti();
+}
+
+function confetti() {
+  const c = document.getElementById('confetti');
+  c.style.display = 'block';
+  c.width = window.innerWidth; c.height = window.innerHeight;
+  const ctx = c.getContext('2d');
+  const peças = [];
+  const cores = [COLORS.primary, COLORS.cat[1], COLORS.cat[2], COLORS.cat[3], COLORS.cat[4]];
+  for (let i=0; i<70; i++) {
+    peças.push({ x: Math.random()*c.width, y: -20 - Math.random()*200,
+      vx: (Math.random()-0.5)*3, vy: 2 + Math.random()*3,
+      cor: cores[Math.floor(Math.random()*cores.length)],
+      size: 6 + Math.random()*8, rot: Math.random()*Math.PI*2,
+      vr: (Math.random()-0.5)*0.3 });
+  }
+  let frames = 0;
+  function animar() {
+    ctx.clearRect(0,0,c.width,c.height);
+    peças.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.cor; ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+      ctx.restore();
+    });
+    frames++;
+    if (frames < 140) requestAnimationFrame(animar);
+    else { c.style.display = 'none'; ctx.clearRect(0,0,c.width,c.height); }
+  }
+  animar();
+}
+</script>
+</body>
+</html>
